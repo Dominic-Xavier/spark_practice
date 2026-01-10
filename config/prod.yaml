@@ -1,0 +1,13 @@
+env: prod
+
+paths:
+  employees: s3://company-raw/employees/
+  transactions: s3://company-raw/transactions/
+  cities: s3://company-raw/cities/
+
+output:
+  curated: s3://company-curated/
+  gold: s3://company-gold/
+
+spark:
+  shuffle_partitions: 800

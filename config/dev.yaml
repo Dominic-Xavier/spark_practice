@@ -1,0 +1,13 @@
+env: dev
+
+paths:
+  employees: \dataset\employee_records.csv
+  sales: \dataset\sales.csv
+  cities: \dataset\cities.csv
+
+output:
+  curated: \output\curated
+  gold: \output\gold
+
+spark:
+  shuffle_partitions: 200
