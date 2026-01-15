@@ -27,10 +27,6 @@ jobs:
           --exclude ".git/*" \
           --exclude ".github/*"
 
-    # 5️⃣ 🔥 Trigger AWS Glue Job (PLACE IT HERE)
-    - name: Trigger AWS Glue Job for SparkJob
-      run: aws glue start-job-run --job-name my-etl-job --arguments '{"--env":"prod"}'
-
     # 3️⃣ Package Glue libraries (FROM src/)
     - name: Package Glue libraries
       run: |
