@@ -14,13 +14,25 @@ from utils import WaterMarkManager
 
 def main():
 
-    watermark_manager = WaterMarkManager(resolve_path("\\logs\\watermark/watermark.json"))
+    
+    # ----------------------------
+    # Initialize watermark manager
+    # ----------------------------
+    #watermark_manager = WaterMarkManager(resolve_path("\\logs\\watermark\\watermark.json"))
+
+    # ----------------------------
+    # Parse arguments & load config
+    # ----------------------------
 
     args = parse_args()
+
+    # ----------------------------
+    # Initialize Spark & Logger
+    #----------------------------
     spark = get_spark("end_to_end_pipeline")
     logger = get_logger("PIPELINE")
 
-    logger.info("Starting pipeline")
+    logger.info(f"Starting pipeline in {args.env} environment")
 
     #Load files from yaml file
     config = load_config(args.env)
@@ -29,23 +41,41 @@ def main():
     sales_path = resolve_path(config["paths"]["sales"])
     city_path = resolve_path(config["paths"]["cities"])
 
-    employees = read_records.read_employees(spark, emp_path)
-    transactions = read_records.read_transactions(spark, sales_path)
-    cities = read_records.read_cities(spark, city_path)
+    employees = read_records.read_records_csv(spark, emp_path)
+    transactions = read_records.read_records_csv(spark, sales_path)
+    cities = read_records.read_records_csv(spark, city_path)
 
     # Validate schemas
     # allow extra columns, only check presence
     schemas = [emp_schema, sales_schema, city_schema]
     dataframe = [employees, transactions, cities]
 
+    # ----------------------------
+    # Schema validation
+    # ----------------------------
+
+    logger.info("Validating schemas")
     for expected_schema, actual_df in zip(schemas, dataframe):
         data_check.validate_schemas(actual_df, expected_schema, logger)
+    
 
-    valid_employees = data_check.validate_employees(employees, logger)
-    
-    valid_employee_df = data_check.deduplicate_bad_records(valid_employees, logger)
-    
-    enriched_txn = enrich_transactions(valid_employee_df, cities)
+    valid_employee_df = (
+        employees
+        .transform(data_check.validate_employee_email)
+        .transform(data_check.deduplicate_employees)
+    )
+
+    valid_employee_df.show()
+
+    valid_employee_df = data_check.process_bad_employee_records(
+        valid_employee_df,
+        logger
+    )
+
+    #valid_employee_df = data_check.process_bad_employee_records(deduplicate_employee_df, logger)
+
+    #Working on below method to enrich transactions, inprogress
+    enrich_transactions(transactions, cities)
 
     logger.info("Pipeline completed successfully...!")
 

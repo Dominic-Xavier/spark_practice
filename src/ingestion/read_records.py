@@ -1,17 +1,6 @@
-def read_cities(spark, path):
+def read_records_csv(spark, path):
     """
-    Reads city dimension
-    """
-    return (
-        spark.read
-        .option("header", True)
-        .option("inferSchema", True)
-        .csv(path)
-    )
-
-def read_employees(spark, path):
-    """
-    Reads employee data
+    Reads records from a CSV file
     """
     return (
         spark.read
@@ -20,13 +9,25 @@ def read_employees(spark, path):
         .csv(path)
     )
 
-def read_transactions(spark, path):
+def read_records_json(spark, path):
     """
-    Reads transaction data
+    Reads records from a JSON file
     """
     return (
         spark.read
         .option("header", True)
         .option("inferSchema", True)
-        .csv(path)
+        .json(path)
     )
+
+def read_records_parquet(spark, path):
+    """
+    Reads records from a Parquet file
+    """
+    return (
+        spark.read
+        .option("header", True)
+        .option("inferSchema", True)
+        .parquet(path)
+    )
+

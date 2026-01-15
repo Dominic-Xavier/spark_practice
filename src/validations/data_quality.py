@@ -11,18 +11,20 @@ def validate_employees(df, logger):
     # salary > 0
     # email not null and valid format
 
-    valid_records = df.withColumn("Age", datediff(current_date(), to_date(df.dob))) \
+    emp = df.withColumn("Age", datediff(current_date(), to_date(df.dob))) \
         .withColumn("email_valid", col("email").rlike(".+@.+\\..+")) \
-        .filter((df.salary > 0) & (df.email.isNotNull()) & (col("email_valid") == True) & (col("Age") >= 18))
-    
-    bad_record = df.withColumn("Age", datediff(current_date(), to_date(df.dob))) \
-        .withColumn("email_valid", col("email").rlike(".+@.+\\..+")) \
-        .filter((df.salary <= 0) | (df.email.isNull()) | (col("email_valid") == False) & (col("Age") < 18))
-    bad_record.show(5)
 
+
+    valid_records = emp \
+        .filter((df.salary > 0) & (df.email.isNotNull()) & (col("email_valid") == True) & (col("Age") >= 18))
+
+    bad_record = emp \
+        .filter((df.salary <= 0) | (df.email.isNull()) | (col("email_valid") == False) & (col("Age") < 18))
     
-    if not bad_record.isEmpty():
-        logger.warning(f"Found {bad_record.count()} bad employee records is saved in logs/bad_employees.csv")
+    bad_record_count = bad_record.count()
+    
+    if bad_record_count > 0:
+        logger.warning(f"Found {bad_record_count} bad employee records is saved in logs/bad_employees.csv")
         bad_record.mode("overwrite").save(resolve_path('\\logs\\bad_employees.csv'))
     else:
         logger.info("No bad employee records found.")
@@ -72,28 +74,88 @@ def validate_schemas(df: DataFrame, expected_schema, logger, strict_types: bool 
     logger.info("Schema validation passed (no expected columns missing).")
     return df
 
-def deduplicate_bad_records(df: DataFrame, logger) -> DataFrame:
+def validate_employee_email(df: DataFrame) -> DataFrame:
     """
-    Deduplicate bad records based on subset of columns
+    Adds email validity flag
     """
-    WindowSpec = Window.partitionBy("department_id", "phone", "email").orderBy(col("department_id"))
-    deduplicated_df = df.withColumn("row_num", row_number().over(WindowSpec)) \
-        .withColumn("isValid", col("email").rlike(".+@.+\\..+")) \
-        .filter((col("row_num") == 1) & (col("isValid") == True)) \
-        .drop("row_num")
-    
-    duplicated_df = df.withColumn("row_num", row_number().over(WindowSpec)) \
-        .withColumn("isValid", col("email").rlike(".+@.+\\..+")) \
-        .filter((col("row_num") > 1) & (col("isValid") == False)) \
-        .drop("row_num")
-    
-    if not duplicated_df.isEmpty():
-        logger.warning(f"Found {duplicated_df.count()} duplicate bad records.")
-        duplicated_df.mode("overwrite").save(resolve_path("\\logs\\bad_employees_duplicates.csv"))
-        logger.info(
-            f"Deduplicated bad records. "
-            f"Original count: {df.count()}, "
-            f"Deduplicated count: {deduplicated_df.count()}, "
-            f"Duplicate records saved to {resolve_path('logs/bad_employees_duplicates.csv')}"
+    return df.withColumn(
+        "is_valid_email",
+        col("email").rlike(r".+@.+\..+")
+    )
+
+def deduplicate_employees(df: DataFrame) -> DataFrame:
+    """
+    Deduplicate employees by business key,
+    keeping the highest salary
+    """
+    window_spec = (
+        Window
+        .partitionBy("department_id", "phone", "email")
+        .orderBy(col("salary").desc())
+    )
+
+    return (
+        df
+        .withColumn("row_num", row_number().over(window_spec))
+    )
+
+
+
+def process_bad_employee_records(
+    df: DataFrame,
+    logger,
+) -> DataFrame:
+    """
+    Validates, deduplicates employees and
+    writes bad records for audit
+    """
+
+    enriched_df = (
+        df
+        .transform(validate_employee_email)
+        .transform(deduplicate_employees)
+    )
+
+    enriched_df.printSchema()
+
+    total_count = enriched_df.count()
+
+    valid_df = (
+        enriched_df
+        .filter((col("row_num") == 1) & col("is_valid_email"))
+        .drop("row_num", "is_valid_email")
+    )
+
+    invalid_email_df = enriched_df.filter(~col("is_valid_email"))
+    duplicate_df = enriched_df.filter(col("row_num") > 1)
+
+    invalid_email_count = invalid_email_df.count()
+    duplicate_count = duplicate_df.count()
+    valid_count = valid_df.count()
+
+    if invalid_email_count > 0 or duplicate_count > 0:
+        logger.warning(
+            f"Employee data quality issues detected | "
+            f"Invalid emails: {invalid_email_count}, "
+            f"Duplicates: {duplicate_count}"
         )
-    return deduplicated_df
+
+        (
+            invalid_email_df
+            .unionByName(duplicate_df)
+            .write
+            .mode("overwrite")
+            .option("header", True)
+            .csv(resolve_path("\\logs\\bad_employees.csv"))
+        )
+
+    logger.info(
+        f"Employee processing completed | "
+        f"Input: {total_count}, "
+        f"Valid: {valid_count}, "
+        f"Invalid emails: {invalid_email_count}, "
+        f"Duplicates: {duplicate_count}"
+    )
+
+    return valid_df
+

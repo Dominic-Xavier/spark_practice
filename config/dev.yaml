@@ -2,7 +2,7 @@ env: dev
 
 paths:
   employees: \dataset\employee_records.csv
-  sales: \dataset\sales.csv
+  sales: \dataset\new_sales.csv
   cities: \dataset\cities.csv
 
 output:
