@@ -34,9 +34,8 @@ jobs:
           --arguments '{"--env":"prod"}'
 
     # 5️⃣ 🔥 Trigger AWS Glue Job (PLACE IT HERE)
-    - name: Trigger AWS Glue Job
-      shell: powershell
+    - name: Trigger AWS Glue Job for SparkJob
       run: |
         aws glue start-job-run `
-          --job-name my-etl-job `
+          --job-name SparkJob `
           --arguments '{"--env":"prod"}'
