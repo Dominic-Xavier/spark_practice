@@ -22,7 +22,6 @@ jobs:
         aws-region: us-east-1
       
     - name: Upload code to S3
-      shell: powershell
       run: |
         aws s3 sync . s3://employee-records-1001/Git-Code/ \
           --exclude ".git/*" \
