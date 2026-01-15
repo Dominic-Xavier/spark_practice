@@ -26,3 +26,17 @@ jobs:
         aws s3 sync . s3://employee-records-1001/Git-Code/ \
           --exclude ".git/*" \
           --exclude ".github/*"
+
+    - name: Trigger AWS Glue Job
+      run: |
+        aws glue start-job-run `
+          --job-name my-etl-job `
+          --arguments '{"--env":"prod"}'
+
+    # 5️⃣ 🔥 Trigger AWS Glue Job (PLACE IT HERE)
+    - name: Trigger AWS Glue Job
+      shell: powershell
+      run: |
+        aws glue start-job-run `
+          --job-name my-etl-job `
+          --arguments '{"--env":"prod"}'

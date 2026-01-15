@@ -1,13 +1,13 @@
 env: prod
 
 paths:
-  employees: s3://company-raw/employees/
-  transactions: s3://company-raw/transactions/
-  cities: s3://company-raw/cities/
+  employees: s3://employee-records-1001/Bronze_Layer/employee_records.csv
+  transactions: s3://employee-records-1001/Bronze_Layer/sales.csv
+  cities: s3://employee-records-1001/Bronze_Layer/cities.csv
 
 output:
-  curated: s3://company-curated/
-  gold: s3://company-gold/
+  curated: s3://employee-records-1001/Curated_Layer/
+  gold: s3://employee-records-1001/Gold_Layer/
 
 spark:
-  shuffle_partitions: 800
+  shuffle_partitions: 50
