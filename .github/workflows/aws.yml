@@ -12,11 +12,9 @@ jobs:
     environment: production
 
     steps:
-      # 1️⃣ Checkout GitHub repository
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2️⃣ Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -24,17 +22,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      # 3️⃣ Verify AWS identity (debug + safety)
       - name: Verify AWS identity
+        shell: bash
         run: aws sts get-caller-identity
 
-      # 4️⃣ (Optional) Run ETL code
-      # Uncomment if you actually want to execute ETL logic
-      # - name: Run ETL
-      #   run: python etl/main.py
-
-      # 5️⃣ Upload GitHub code / ETL artifacts to S3
       - name: Upload code to S3
+        shell: bash
         run: |
           aws s3 sync . s3://employee-records-1001/Git-Code/ \
             --exclude ".git/*" \
