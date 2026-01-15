@@ -23,7 +23,7 @@ jobs:
       
     - name: Upload code to S3
       shell: powershell
-        run: |
-          aws s3 sync . s3://employee-records-1001/Git-Code/ \
-            --exclude ".git/*" \
-            --exclude ".github/*"
+      run: |
+        aws s3 sync . s3://employee-records-1001/Git-Code/ \
+          --exclude ".git/*" \
+          --exclude ".github/*"
