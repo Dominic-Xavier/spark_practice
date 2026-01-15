@@ -29,9 +29,6 @@ jobs:
 
     # 5️⃣ 🔥 Trigger AWS Glue Job (PLACE IT HERE)
     - name: Trigger AWS Glue Job for SparkJob
-      run: |
-        aws glue start-job-run `
-          --job-name SparkJob `
-          --arguments '{"--env":"prod"}'
+      run: aws glue start-job-run --job-name my-etl-job --arguments '{"--env":"prod"}'
 
     
