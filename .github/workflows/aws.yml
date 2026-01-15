@@ -31,4 +31,25 @@ jobs:
     - name: Trigger AWS Glue Job for SparkJob
       run: aws glue start-job-run --job-name my-etl-job --arguments '{"--env":"prod"}'
 
-    
+    # 3️⃣ Package Glue libraries (FROM src/)
+    - name: Package Glue libraries
+      run: |
+        echo "Zipping Glue libraries from src/"
+        cd src
+        zip -r ../glue_libs.zip utils validations transformations configs ingestion
+
+    - name: Upload Glue main script
+      run: |
+        aws s3 cp src/main.py \
+          s3://employee-records-1001/Git-Code/main.py
+
+    - name: Upload Glue libraries zip
+      run: |
+        aws s3 cp glue_libs.zip \
+          s3://employee-records-1001/Git-Code/libs/glue_libs.zip
+
+    - name: Trigger AWS Glue Job
+      run: |
+        aws glue start-job-run \
+          --job-name SparkJob \
+          --arguments '{"--env":"prod"}'

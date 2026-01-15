@@ -11,8 +11,6 @@ from utils.original_schemas import emp_schema, sales_schema, city_schema
 from utils.arg_parser import parse_args
 from utils import WaterMarkManager
 
-from awsglue.utils import getResolvedOptions
-
 
 def main():
 
