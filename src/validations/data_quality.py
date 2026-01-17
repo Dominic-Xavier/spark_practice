@@ -115,7 +115,7 @@ def process_bad_employee_records(
         .transform(validate_employee_email)
         .transform(deduplicate_employees)
     )
-
+    
     enriched_df.printSchema()
 
     total_count = enriched_df.count()

@@ -9,7 +9,7 @@ from transformations.enrich_transactions import enrich_transactions
 from utils.config_loader import load_config
 from utils.original_schemas import emp_schema, sales_schema, city_schema
 from utils.arg_parser import parse_args
-from utils import WaterMarkManager
+from utils.WaterMarkManager import WaterMarkManager
 
 
 def main():
@@ -37,8 +37,13 @@ def main():
     #Load files from yaml file
     config = load_config(args.env)
 
+    water_mark = WaterMarkManager(resolve_path(config["paths"]["water_mark"]), logger)
+
+    water_mark_value = water_mark.read_watermark("last_processed_date")
+
     emp_path = resolve_path(config["paths"]["employees"])
     sales_path = resolve_path(config["paths"]["sales"])
+
     city_path = resolve_path(config["paths"]["cities"])
 
     employees = read_records.read_records_csv(spark, emp_path)
@@ -57,6 +62,8 @@ def main():
     logger.info("Validating schemas")
     for expected_schema, actual_df in zip(schemas, dataframe):
         data_check.validate_schemas(actual_df, expected_schema, logger)
+    
+
     
 
     valid_employee_df = (

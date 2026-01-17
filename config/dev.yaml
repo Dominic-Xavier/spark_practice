@@ -4,6 +4,7 @@ paths:
   employees: \dataset\employee_records.csv
   sales: \dataset\new_sales.csv
   cities: \dataset\cities.csv
+  water_mark: \logs\watermark\watermark.json
 
 output:
   curated: \output\curated
