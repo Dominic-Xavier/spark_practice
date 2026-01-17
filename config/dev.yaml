@@ -7,8 +7,12 @@ paths:
   water_mark: \logs\watermark\watermark.json
 
 output:
-  curated: \output\curated
-  gold: \output\gold
+  curated: \output\curated\
+  gold: \output\gold\
+  employee_dim: \output\curated\employee_dim\
+  city_dim: \output\curated\city_dim\
+  sales_fact: \output\gold\sales_fact\
+  date_dim: \output\curated\date_dim\
 
 spark:
   shuffle_partitions: 200

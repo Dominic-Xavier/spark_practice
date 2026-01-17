@@ -22,7 +22,7 @@ class WaterMarkManager:
         
         if not os.path.exists(file_path):
             with open(file_path, "w") as f:
-                f.write("")
+                json.dump({}, f)
 
 
     def read_watermark(self, key: str):
@@ -39,7 +39,7 @@ class WaterMarkManager:
         with open(self.watermark_file_path, "r") as f:
             data = json.load(f)
         
-        if data is None:
+        if data is None or data == {}:
             return data
         
         value = data.get(key)
@@ -54,6 +54,11 @@ class WaterMarkManager:
 
         with open(self.watermark_file_path, "r") as f:
             existing_data = json.load(f)
+
+        # Convert date objects to strings for JSON serialization
+        for key, value in kwargs.items():
+            if hasattr(value, 'isoformat'):  # Check if it's a date/datetime
+                kwargs[key] = value.isoformat()
 
         existing_data.update(kwargs)
 
