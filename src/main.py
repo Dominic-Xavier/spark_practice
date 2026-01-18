@@ -19,10 +19,7 @@ from utils.runtime_args import get_env_arg
 def main():
 
     
-    # ----------------------------
-    # Initialize watermark manager
-    # ----------------------------
-    watermark_manager = WaterMarkManager(resolve_path("\\logs\\watermark\\watermark.json"))
+    
 
     # ----------------------------
     # Parse arguments & load config
@@ -38,10 +35,6 @@ def main():
 
     #Load files from yaml file
     config = load_config(env)
-
-    
-
-    water_mark_value = water_mark.read_watermark("last_processed_date")
 
     try:
         emp_path = resolve_path(config["paths"]["employees"])
@@ -99,7 +92,7 @@ def main():
     city_dim_df = tran.city_dim_table(cities)
     sales_fact_df = tran.sales_fact_table(employee_dim_df, transactions)
     # Update watermark after processing
-    watermark_manager.update_watermark(last_Processed_date = tran.get_transaction_date(sales_fact_df))
+    water_mark.update_watermark(last_Processed_date = tran.get_transaction_date(sales_fact_df))
     date_dim_df = tran.date_dim_table(sales_fact_df)
     sales_fact_df = tran.add_year_month_columns(sales_fact_df, "transacted_at")
 
