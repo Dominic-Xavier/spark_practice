@@ -13,7 +13,12 @@ def load_config(env: str):
         f"{env}.yaml"
     )"""
 
-    with open(get_project_root() + f"\\config\\{env}.yaml", "r") as file:
-        config = yaml.safe_load(file)
+    file_path = "s3://employee-records-1001/Git-Code/config/"
+    if env == "prod":
+        with open(file_path + f"/{env}.yaml", "r") as file:
+            config = yaml.safe_load(file)
+    elif env == "dev":
+        with open(get_project_root() + f"\\config\\{env}.yaml", "r") as file:
+            config = yaml.safe_load(file)
 
     return config
