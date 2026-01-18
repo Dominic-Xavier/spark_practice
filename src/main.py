@@ -39,7 +39,7 @@ def main():
     #Load files from yaml file
     config = load_config(env)
 
-    water_mark = WaterMarkManager(resolve_path(config["paths"]["water_mark"]), logger)
+    
 
     water_mark_value = water_mark.read_watermark("last_processed_date")
 
@@ -48,12 +48,18 @@ def main():
         sales_path = resolve_path(config["paths"]["sales"])
 
         city_path = resolve_path(config["paths"]["cities"])
+        water_mark = WaterMarkManager(resolve_path(config["paths"]["water_mark"]), logger)
 
     except Exception as e:
         emp_path = config["paths"]["employees"]
         sales_path = config["paths"]["sales"]
 
         city_path = config["paths"]["cities"]
+        water_mark = WaterMarkManager(config["paths"]["water_mark"], logger)
+    # ----------------------------
+    # Read input data
+    # ----------------------------
+    logger.info("Reading input data")
 
     
     employees = records.read_records_csv(spark, emp_path)
