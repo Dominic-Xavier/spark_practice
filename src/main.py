@@ -37,26 +37,23 @@ def main():
     config = load_config(env)
 
     try:
-        emp_path = config["paths"]["employees"]
-        sales_path = config["paths"]["sales"]
-        city_path = config["paths"]["cities"]
+        employees = records.read_records_csv(spark, config["paths"]["employees"])
+        transactions = records.read_records_csv(spark, config["paths"]["sales"])
+        cities = records.read_records_csv(spark, config["paths"]["cities"])
         water_mark = WaterMarkManager(config["paths"]["water_mark"], logger)
 
     except Exception as e:
-        emp_path = resolve_path(config["paths"]["employees"])
-        sales_path = resolve_path(config["paths"]["sales"])
-
-        city_path = resolve_path(config["paths"]["cities"])
-        water_mark = WaterMarkManager(resolve_path(config["paths"]["water_mark"]), logger)
+        employees = records.read_records_csv(spark, config["paths"]["employees"])
+        transactions = records.read_records_csv(spark, config["paths"]["sales"])
+        cities = records.read_records_csv(spark, config["paths"]["cities"])
+        water_mark = WaterMarkManager(config["paths"]["water_mark"], logger)
     # ----------------------------
     # Read input data
     # ----------------------------
     logger.info("Reading input data")
 
     
-    employees = records.read_records_csv(spark, emp_path)
-    transactions = records.read_records_csv(spark, sales_path)
-    cities = records.read_records_csv(spark, city_path)
+    
 
     # Validate schemas
     # allow extra columns, only check presence

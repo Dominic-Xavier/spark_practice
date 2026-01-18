@@ -6,10 +6,10 @@ def write_partquest(df:DataFrame, mode:mode, path:str, partition_col=None) -> No
     """
     Write DataFrame to Parquet files partitioned by specified column
     """
-    directory = os.path.dirname(path)
+    #directory = os.path.dirname(path)
 
-    if directory and not os.path.exists(directory):
-        os.makedirs(directory, exist_ok=True)
+    """if directory and not os.path.exists(directory):
+        os.makedirs(directory, exist_ok=True)"""
 
     writer = df.write.mode(mode.value)
 
