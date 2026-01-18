@@ -43,11 +43,19 @@ def main():
 
     water_mark_value = water_mark.read_watermark("last_processed_date")
 
-    emp_path = resolve_path(config["paths"]["employees"])
-    sales_path = resolve_path(config["paths"]["sales"])
+    try:
+        emp_path = resolve_path(config["paths"]["employees"])
+        sales_path = resolve_path(config["paths"]["sales"])
 
-    city_path = resolve_path(config["paths"]["cities"])
+        city_path = resolve_path(config["paths"]["cities"])
 
+    except Exception as e:
+        emp_path = config["paths"]["employees"]
+        sales_path = config["paths"]["sales"]
+
+        city_path = config["paths"]["cities"]
+
+    
     employees = records.read_records_csv(spark, emp_path)
     transactions = records.read_records_csv(spark, sales_path)
     cities = records.read_records_csv(spark, city_path)
@@ -89,10 +97,21 @@ def main():
     date_dim_df = tran.date_dim_table(sales_fact_df)
     sales_fact_df = tran.add_year_month_columns(sales_fact_df, "transacted_at")
 
-    write.write_partquest(employee_dim_df,  WriteMode.OVERWRITE, resolve_path(config["output"]["employee_dim"]))
-    write.write_partquest(city_dim_df, WriteMode.OVERWRITE, resolve_path(config["output"]["city_dim"]), "country")
-    write.write_partquest(sales_fact_df, WriteMode.OVERWRITE, resolve_path(config["output"]["sales_fact"]), "year")
-    write.write_partquest(date_dim_df, WriteMode.OVERWRITE, resolve_path(config["output"]["date_dim"]))
+    # ----------------------------
+    # Write data to output paths
+    # ----------------------------
+    logger.info("Writing data to output paths")
+
+    try:
+        write.write_partquest(employee_dim_df,  WriteMode.OVERWRITE, config["output"]["employee_dim"])
+        write.write_partquest(city_dim_df, WriteMode.OVERWRITE, config["output"]["city_dim"], "country")
+        write.write_partquest(sales_fact_df, WriteMode.OVERWRITE, config["output"]["sales_fact"], "year")
+        write.write_partquest(date_dim_df, WriteMode.OVERWRITE, config["output"]["date_dim"])
+    except Exception as e:
+        write.write_partquest(employee_dim_df,  WriteMode.OVERWRITE, resolve_path(config["output"]["employee_dim"]))
+        write.write_partquest(city_dim_df, WriteMode.OVERWRITE, resolve_path(config["output"]["city_dim"]), "country")
+        write.write_partquest(sales_fact_df, WriteMode.OVERWRITE, resolve_path(config["output"]["sales_fact"]), "year")
+        write.write_partquest(date_dim_df, WriteMode.OVERWRITE, resolve_path(config["output"]["date_dim"]))
 
     logger.info("Pipeline completed successfully...!")
 
