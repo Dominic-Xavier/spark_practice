@@ -9,10 +9,11 @@ from validations import data_quality as data_check
 from transformations import enrich_transactions as tran
 from utils.config_loader import load_config
 from utils.original_schemas import emp_schema, sales_schema, city_schema
-from utils.arg_parser import parse_args
+
 from utils.WaterMarkManager import WaterMarkManager
 from pyspark.sql.functions import *
 from utils.enum import WriteMode
+from utils.runtime_args import get_env_arg
 
 
 def main():
@@ -21,24 +22,22 @@ def main():
     # ----------------------------
     # Initialize watermark manager
     # ----------------------------
-    #watermark_manager = WaterMarkManager(resolve_path("\\logs\\watermark\\watermark.json"))
+    watermark_manager = WaterMarkManager(resolve_path("\\logs\\watermark\\watermark.json"))
 
     # ----------------------------
     # Parse arguments & load config
     # ----------------------------
-
-    args = parse_args()
-
+    env = get_env_arg()
     # ----------------------------
     # Initialize Spark & Logger
-    #----------------------------
+    #-----------------------------
     spark = get_spark("end_to_end_pipeline")
     logger = get_logger("PIPELINE")
 
-    logger.info(f"Starting pipeline in {args.env} environment")
+    logger.info(f"Starting pipeline in {env} environment")
 
     #Load files from yaml file
-    config = load_config(args.env)
+    config = load_config(env)
 
     water_mark = WaterMarkManager(resolve_path(config["paths"]["water_mark"]), logger)
 
@@ -86,7 +85,7 @@ def main():
     city_dim_df = tran.city_dim_table(cities)
     sales_fact_df = tran.sales_fact_table(employee_dim_df, transactions)
     # Update watermark after processing
-    water_mark.update_watermark(last_Processed_date = tran.get_transaction_date(sales_fact_df))
+    watermark_manager.update_watermark(last_Processed_date = tran.get_transaction_date(sales_fact_df))
     date_dim_df = tran.date_dim_table(sales_fact_df)
     sales_fact_df = tran.add_year_month_columns(sales_fact_df, "transacted_at")
 
