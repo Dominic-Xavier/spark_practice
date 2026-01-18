@@ -37,18 +37,17 @@ def main():
     config = load_config(env)
 
     try:
+        emp_path = config["paths"]["employees"]
+        sales_path = config["paths"]["sales"]
+        city_path = config["paths"]["cities"]
+        water_mark = WaterMarkManager(config["paths"]["water_mark"], logger)
+
+    except Exception as e:
         emp_path = resolve_path(config["paths"]["employees"])
         sales_path = resolve_path(config["paths"]["sales"])
 
         city_path = resolve_path(config["paths"]["cities"])
         water_mark = WaterMarkManager(resolve_path(config["paths"]["water_mark"]), logger)
-
-    except Exception as e:
-        emp_path = config["paths"]["employees"]
-        sales_path = config["paths"]["sales"]
-
-        city_path = config["paths"]["cities"]
-        water_mark = WaterMarkManager(config["paths"]["water_mark"], logger)
     # ----------------------------
     # Read input data
     # ----------------------------
