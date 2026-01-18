@@ -2,8 +2,9 @@ env: prod
 
 paths:
   employees: s3://employee-records-1001/Bronze_Layer/employee_records.csv
-  transactions: s3://employee-records-1001/Bronze_Layer/sales.csv
+  sales: s3://employee-records-1001/Bronze_Layer/sales.csv
   cities: s3://employee-records-1001/Bronze_Layer/cities.csv
+  water_mark: s3://employee-records-1001/Git-Code/config/prod.yaml
 
 output:
   curated: s3://employee-records-1001/Curated_Layer/
