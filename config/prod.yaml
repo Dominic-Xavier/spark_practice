@@ -8,6 +8,7 @@ paths:
 output:
   curated: s3://employee-records-1001/Curated_Layer/
   gold: s3://employee-records-1001/Gold_Layer/
+  
 
 spark:
   shuffle_partitions: 50
