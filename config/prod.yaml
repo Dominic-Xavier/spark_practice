@@ -11,7 +11,7 @@ output:
   gold: s3://employee-records-1001/Gold_Layer/
   employee_dim: s3://employee-records-1001/Gold_layer/employee_dim/
   city_dim: s3://employee-records-1001/Gold_layer/city_dim/
-  sales_fact: s3://employee-records-1001/Gold_Layer/sales_fact/
+  sales_fact: s3://employee-records-1001/Gold_layer/sales_fact/
   date_dim: s3://employee-records-1001/Gold_layer/date_dim/
 
 spark:

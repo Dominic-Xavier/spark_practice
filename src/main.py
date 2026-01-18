@@ -17,10 +17,6 @@ from utils.runtime_args import get_env_arg
 
 
 def main():
-
-    
-    
-
     # ----------------------------
     # Parse arguments & load config
     # ----------------------------
@@ -36,17 +32,17 @@ def main():
     #Load files from yaml file
     config = load_config(env)
 
-    try:
+    if env == "prod":
         employees = records.read_records_csv(spark, config["paths"]["employees"])
         transactions = records.read_records_csv(spark, config["paths"]["sales"])
         cities = records.read_records_csv(spark, config["paths"]["cities"])
         water_mark = WaterMarkManager(config["paths"]["water_mark"], logger)
 
-    except Exception as e:
-        employees = records.read_records_csv(spark, config["paths"]["employees"])
-        transactions = records.read_records_csv(spark, config["paths"]["sales"])
-        cities = records.read_records_csv(spark, config["paths"]["cities"])
-        water_mark = WaterMarkManager(config["paths"]["water_mark"], logger)
+    else:
+        employees = records.read_records_csv(spark, resolve_path(config["paths"]["employees"]))
+        transactions = records.read_records_csv(spark, resolve_path(config["paths"]["sales"]))
+        cities = records.read_records_csv(spark, resolve_path(config["paths"]["cities"]))
+        water_mark = WaterMarkManager(resolve_path(config["paths"]["water_mark"]), logger)
     # ----------------------------
     # Read input data
     # ----------------------------
@@ -54,7 +50,6 @@ def main():
 
     
     
-
     # Validate schemas
     # allow extra columns, only check presence
     schemas = [emp_schema, sales_schema, city_schema]
@@ -96,16 +91,17 @@ def main():
     # Write data to output paths
     # ----------------------------
     logger.info("Writing data to output paths")
+    sales_fact_df.select("year","month").distinct().filter(col("year") == 2018).show()
 
-    try:
+    if env == "prod":
         write.write_partquest(employee_dim_df,  WriteMode.OVERWRITE, config["output"]["employee_dim"])
         write.write_partquest(city_dim_df, WriteMode.OVERWRITE, config["output"]["city_dim"], "country")
-        write.write_partquest(sales_fact_df, WriteMode.OVERWRITE, config["output"]["sales_fact"], "year")
+        write.write_partquest(sales_fact_df, WriteMode.OVERWRITE, config["output"]["sales_fact"], "year", "month")
         write.write_partquest(date_dim_df, WriteMode.OVERWRITE, config["output"]["date_dim"])
-    except Exception as e:
+    else:
         write.write_partquest(employee_dim_df,  WriteMode.OVERWRITE, resolve_path(config["output"]["employee_dim"]))
         write.write_partquest(city_dim_df, WriteMode.OVERWRITE, resolve_path(config["output"]["city_dim"]), "country")
-        write.write_partquest(sales_fact_df, WriteMode.OVERWRITE, resolve_path(config["output"]["sales_fact"]), "year")
+        write.write_partquest(sales_fact_df, WriteMode.OVERWRITE, resolve_path(config["output"]["sales_fact"]), "year", "month")
         write.write_partquest(date_dim_df, WriteMode.OVERWRITE, resolve_path(config["output"]["date_dim"]))
 
     logger.info("Pipeline completed successfully...!")
