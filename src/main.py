@@ -81,7 +81,7 @@ def main():
     city_dim_df = tran.city_dim_table(cities)
     sales_fact_df = tran.sales_fact_table(employee_dim_df, transactions)
     # Update watermark after processing
-    water_mark.update_watermark(last_Processed_date = tran.get_transaction_date(sales_fact_df))
+    #water_mark.update_watermark(last_Processed_date = tran.get_transaction_date(sales_fact_df))
     date_dim_df = tran.date_dim_table(sales_fact_df)
     sales_fact_df = tran.add_year_month_columns(sales_fact_df, "transacted_at")
 
