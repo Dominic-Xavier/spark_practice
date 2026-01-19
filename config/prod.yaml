@@ -2,7 +2,7 @@ env: prod
 
 paths:
   employees: s3://employee-records-1001/Bronze_Layer/employee_records.csv
-  sales: s3://employee-records-1001/Bronze_Layer/sales.csv
+  sales: s3://employee-records-1001/Bronze_Layer/new_sales.csv
   cities: s3://employee-records-1001/Bronze_Layer/cities.csv
   water_mark: s3://employee-records-1001/Git-Code/config/prod.yaml
 
