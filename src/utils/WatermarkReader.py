@@ -42,6 +42,8 @@ class WatermarkReader:
     def read_watermark(self, key):
         bucket, object_key = self._parse_s3_path()
 
+        self._create_empty_file_if_not_exists()
+
         try:
             response = self.s3.get_object(Bucket=bucket, Key=object_key)
             content = response["Body"].read().decode("utf-8").strip()
