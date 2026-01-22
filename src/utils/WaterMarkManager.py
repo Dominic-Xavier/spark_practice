@@ -40,7 +40,7 @@ class WaterMarkManager:
             data = json.load(f)
         
         if data is None or data == {}:
-            return data
+            return None
         
         value = data.get(key)
         return value
