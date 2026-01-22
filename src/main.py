@@ -30,6 +30,11 @@ def main():
     spark = get_spark("end_to_end_pipeline")
     logger = get_logger("PIPELINE")
 
+    spark.conf.set(
+        "spark.sql.sources.partitionOverwriteMode",
+        "dynamic"
+    )
+
     logger.info(f"Starting pipeline in {env} environment")
 
     #Load files from yaml file
