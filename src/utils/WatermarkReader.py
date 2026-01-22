@@ -48,7 +48,7 @@ class WatermarkReader:
             response = self.s3.get_object(Bucket=bucket, Key=object_key)
             content = response["Body"].read().decode("utf-8").strip()
 
-            if not content:
+            if not content or content == "{}":
                 return None
 
             data = json.loads(content)
