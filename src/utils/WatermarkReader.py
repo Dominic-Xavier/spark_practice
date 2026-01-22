@@ -40,38 +40,38 @@ class WatermarkReader:
                 raise
 
     def read_watermark(self, key):
-    bucket, object_key = self._parse_s3_path()
+        bucket, object_key = self._parse_s3_path()
 
-    # Ensure file exists
-    self._create_empty_file_if_not_exists()
-
-    try:
-        response = self.s3.get_object(Bucket=bucket, Key=object_key)
-        content = response["Body"].read().decode("utf-8").strip()
-
-        # Empty or whitespace-only file
-        if not content:
-            return None
+        # Ensure file exists
+        self._create_empty_file_if_not_exists()
 
         try:
-            data = json.loads(content)
-        except JSONDecodeError:
-            # Corrupt / partial / invalid JSON
-            return None
+            response = self.s3.get_object(Bucket=bucket, Key=object_key)
+            content = response["Body"].read().decode("utf-8").strip()
 
-        if not data:
-            return None
+            # Empty or whitespace-only file
+            if not content:
+                return None
 
-        if key not in data:
-            raise KeyError(f"Invalid watermark key: {key}")
+            try:
+                data = json.loads(content)
+            except JSONDecodeError:
+                # Corrupt / partial / invalid JSON
+                return None
 
-        return data[key]
+            if not data:
+                return None
 
-    except ClientError as e:
-        if e.response["Error"]["Code"] == "NoSuchKey":
-            return None
-        else:
-            raise
+            if key not in data:
+                raise KeyError(f"Invalid watermark key: {key}")
+
+            return data[key]
+
+        except ClientError as e:
+            if e.response["Error"]["Code"] == "NoSuchKey":
+                return None
+            else:
+                raise
 
     def update_watermark(self, **data):
         """
