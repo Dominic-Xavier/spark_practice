@@ -1,6 +1,7 @@
 import os
 import json
-from utils.path_utils import resolve_path
+from botocore.exceptions import ClientError
+from json import JSONDecodeError
 
 class WaterMarkManager:
 
@@ -25,25 +26,45 @@ class WaterMarkManager:
                 json.dump({}, f)
 
 
-    def read_watermark(self, key: str):
-        """
-        Reads watermark value for a given key
-        """
-        self._create_file_if_not_exists()
+    def read_watermark(self, key):
+        bucket, object_key = self._parse_s3_path()
 
-        if os.path.exists(self.watermark_file_path) and os.path.getsize(self.watermark_file_path) == 0:
-            self.logger.info(f"Watermark file {self.watermark_file_path} is empty.")
-            return None
+        # Ensure file exists
+        self._create_empty_file_if_not_exists()
 
+        try:
+            response = self.s3.get_object(Bucket=bucket, Key=object_key)
+            content = response["Body"].read().decode("utf-8").strip()
 
-        with open(self.watermark_file_path, "r") as f:
-            data = json.load(f)
-        
-        if data is None or data == {}:
-            return None
-        
-        value = data.get(key)
-        return value
+            # Empty or whitespace-only file
+            if not content:
+                return None
+
+            try:
+                data = json.loads(content)
+            except JSONDecodeError:
+                # Corrupt / partial / invalid JSON
+                self.s3.put_object(
+                    Bucket=bucket,
+                    Key=object_key,
+                    Body=json.dumps({}),
+                    ContentType="application/json"
+                )
+                return None
+
+            if not data:
+                return None
+
+            if key not in data:
+                raise KeyError(f"Invalid watermark key: {key}")
+
+            return data[key]
+
+        except ClientError as e:
+            if e.response["Error"]["Code"] == "NoSuchKey":
+                return None
+            else:
+                raise
 
     def update_watermark(self, **kwargs):
         """
