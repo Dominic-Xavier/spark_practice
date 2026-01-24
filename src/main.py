@@ -30,10 +30,8 @@ def main():
     spark = get_spark("end_to_end_pipeline")
     logger = get_logger("PIPELINE")
 
-    spark.conf.set(
-        "spark.sql.sources.partitionOverwriteMode",
-        "dynamic"
-    )
+    spark.conf.set("spark.sql.sources.partitionOverwriteMode", "dynamic")
+    spark.conf.set("spark.sql.adaptive.enabled", "true")
 
     logger.info(f"Starting pipeline in {env} environment")
 
@@ -103,8 +101,9 @@ def main():
         date_dim = resolve_path(config["output"]["date_dim"])
 
     # Working on below method to enrich transactions, inprogress
-    sales_last_processed = datetime.combine(tran.get_transaction_date(sales_fact_df), datetime.min.time())
+    sales_last_processed = datetime.combine(tran.get_transaction_date(sales_fact_df), datetime.max.time())
     print(sales_last_processed)
+
     waterMark_data = water_mark.read_watermark("last_Processed_date")
     if waterMark_data is not None:
         watermark_data = datetime.strptime(waterMark_data, "%Y-%m-%d")
@@ -112,26 +111,28 @@ def main():
         watermark_data = None
     print(waterMark_data)
     if (watermark_data is not None and
-        watermark_data < sales_last_processed):
+        watermark_data > sales_last_processed):
 
         # ----------------------------
         # Write data to output paths
         # ----------------------------
         logger.info("Writing data to output paths")
         
-        target_sales_df = records.read_records_parquet(spark, sales_fact)
-        target_employee_df = records.read_records_parquet(spark, emp_din)
+        target_sales_df = records.read_records_delta(spark, sales_fact)
+        target_employee_df = records.read_records_delta(spark, emp_din)
+
+        target_sales_df = target_sales_df.filter(col("transacted_at") > lit(watermark_data))
 
         staging_sales_df = tran.prepare_sales_staging(sales_fact_df)
-        sales_Fact_Updated_Record = tran.scd1_sales_merge(staging_sales_df, target_sales_df)
+        sales_Fact_Updated_Record = tran.scd1_sales_merge(spark, staging_sales_df, target_sales_df)
 
         scd_emp.prepare_employee_staging(valid_employee_df)
         employee_scd2_dim_df = scd_emp.scd2_employee_merge(staging_sales_df, target_employee_df)
         
-        write.write_partquest(employee_scd2_dim_df,  WriteMode.OVERWRITE, emp_din, "department_id")
-        write.write_partquest(city_dim_df, WriteMode.OVERWRITE, city_dim, "country")
-        write.write_partquest(sales_Fact_Updated_Record, WriteMode.OVERWRITE, sales_fact, "year", "month")
-        write.write_partquest(date_dim_df, WriteMode.OVERWRITE, date_dim)
+        write.write_parquet_delta(employee_scd2_dim_df,  WriteMode.OVERWRITE, emp_din, "department_id")
+        write.write_parquet_delta(city_dim_df, WriteMode.OVERWRITE, city_dim, "country")
+        write.write_parquet_delta(sales_Fact_Updated_Record, WriteMode.OVERWRITE, sales_fact, "year", "month")
+        write.write_parquet_delta(date_dim_df, WriteMode.OVERWRITE, date_dim)
 
         # Update watermark after processing
         water_mark.update_watermark(last_Processed_date = sales_last_processed)
@@ -147,10 +148,10 @@ def main():
         prepare_sales_staging_df = tran.prepare_sales_staging(sales_fact_df)
         prepare_employee_staging_df = scd_emp.prepare_employee_staging(valid_employee_df)
         
-        write.write_partquest(prepare_employee_staging_df,  WriteMode.OVERWRITE, emp_din, "department_id")
-        write.write_partquest(city_dim_df, WriteMode.OVERWRITE, city_dim, "country")
-        write.write_partquest(prepare_sales_staging_df, WriteMode.OVERWRITE, sales_fact, "year", "month")
-        write.write_partquest(date_dim_df, WriteMode.OVERWRITE, date_dim)
+        write.write_parquet_delta(prepare_employee_staging_df,  WriteMode.OVERWRITE, emp_din, "department_id")
+        write.write_parquet_delta(city_dim_df, WriteMode.OVERWRITE, city_dim, "country")
+        write.write_parquet_delta(prepare_sales_staging_df, WriteMode.OVERWRITE, sales_fact, "year", "month")
+        write.write_parquet_delta(date_dim_df, WriteMode.OVERWRITE, date_dim)
 
         # Update watermark after processing
         water_mark.update_watermark(last_Processed_date = sales_last_processed)

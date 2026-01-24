@@ -31,3 +31,13 @@ def read_records_parquet(spark, path):
         .parquet(path)
     )
 
+def read_records_delta(spark, path):
+    """
+    Reads records from a Delta file
+    """
+    return (
+        spark
+        .read
+        .format("delta")
+        .load(path)
+    )

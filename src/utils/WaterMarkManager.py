@@ -26,45 +26,40 @@ class WaterMarkManager:
                 json.dump({}, f)
 
 
-    def read_watermark(self, key):
-        bucket, object_key = self._parse_s3_path()
+    def read_watermark(self, key: str):
+        """
+        Read value from JSON content.
 
-        # Ensure file exists
-        self._create_empty_file_if_not_exists()
+        Args:
+            json_content (str): JSON string
+            key (str): key to read
+
+        Returns:
+            value | None
+
+        Raises:
+            KeyError: if key is not present
+            ValueError: if JSON is invalid
+        """
+
+        self._create_file_if_not_exists()
+
+        # Handle empty / whitespace-only data
+        
 
         try:
-            response = self.s3.get_object(Bucket=bucket, Key=object_key)
-            content = response["Body"].read().decode("utf-8").strip()
+            data = json.loads(self.watermark_file_path)
+        except JSONDecodeError:
+            return None
 
-            # Empty or whitespace-only file
-            if not content:
-                return None
+        # Handle empty JSON object
+        if not data or data == {}:
+            return None
 
-            try:
-                data = json.loads(content)
-            except JSONDecodeError:
-                # Corrupt / partial / invalid JSON
-                self.s3.put_object(
-                    Bucket=bucket,
-                    Key=object_key,
-                    Body=json.dumps({}),
-                    ContentType="application/json"
-                )
-                return None
+        if key not in data:
+            raise KeyError(f"Invalid key: {key}")
 
-            if not data:
-                return None
-
-            if key not in data:
-                raise KeyError(f"Invalid watermark key: {key}")
-
-            return data[key]
-
-        except ClientError as e:
-            if e.response["Error"]["Code"] == "NoSuchKey":
-                return None
-            else:
-                raise
+        return data[key]
 
     def update_watermark(self, **kwargs):
         """

@@ -42,3 +42,14 @@ def write_json(df:DataFrame, mode:mode, path:str, partition_col=None) -> None:
         .partitionBy(partition_col)
         .json(path)
     )
+
+def write_parquet_delta(df:DataFrame, mode:mode, path:str, *partition_col) -> None:
+    """
+    Write DataFrame to Delta Parquet files
+    """
+    writer = df.write.mode(mode.value)
+
+    if partition_col:
+        writer = writer \
+        .partitionBy(partition_col)
+    writer.format("delta").save(path)

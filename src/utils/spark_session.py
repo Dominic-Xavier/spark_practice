@@ -1,4 +1,5 @@
 from pyspark.sql import SparkSession
+from delta import configure_spark_with_delta_pip
 
 def get_spark(app_name: str, host: str = "local[*]") -> SparkSession:
     """
@@ -7,10 +8,17 @@ def get_spark(app_name: str, host: str = "local[*]") -> SparkSession:
     Returns:
         SparkSession: Configured SparkSession object.
     """
-    spark = (
+
+    builder = (
         SparkSession.builder
-        .appName(app_name)
-        .master(host)
-        .getOrCreate()
+        .appName("DeltaTest")
+        .master("local[*]")
+        .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
+        .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
     )
+
+    spark = configure_spark_with_delta_pip(builder).getOrCreate()
+
+    print("Spark Version:", spark.version)
+
     return spark

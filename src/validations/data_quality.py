@@ -1,4 +1,5 @@
-from pyspark.sql.functions import datediff, to_date, col, DataFrame, current_date, row_number
+from pyspark.sql.functions import datediff, to_date, col, current_date, row_number
+from pyspark.sql import DataFrame
 from pyspark.sql.types import StructType
 from pyspark.sql.window import Window
 from utils.path_utils import resolve_path
