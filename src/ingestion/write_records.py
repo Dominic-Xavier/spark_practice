@@ -1,4 +1,3 @@
-import os
 from pyspark.sql import DataFrame
 from utils.enum import WriteMode as mode
 
