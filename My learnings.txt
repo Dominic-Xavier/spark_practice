@@ -1,0 +1,14 @@
+Learning Curve
+
+✔ Batch + SCD2
+✔ Delta Lake
+➡ Spark Structured Streaming
+➡ Kafka
+➡ Glue DynamicFrames
+➡ Glue Bookmarks
+➡ Glue Streaming
+➡ Iceberg
+➡ CDC pipelines
+
+Run with the below command for consumer .py files, this will download delta and kafka lib during running
+spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.5,io.delta:delta-spark_2.12:3.2.0 --conf spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog jobs/stream_orders.py

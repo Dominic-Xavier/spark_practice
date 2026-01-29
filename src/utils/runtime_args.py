@@ -1,9 +1,5 @@
 import sys
 
-
-import sys
-
-
 def get_env_arg():
     """
     Get --env argument in a way that works for:

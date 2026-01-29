@@ -1,7 +1,7 @@
 from pyspark.sql import SparkSession
 from delta import configure_spark_with_delta_pip
 
-def get_spark(app_name: str, host: str = "local[*]") -> SparkSession:
+def get_spark(app_name: str = "DeltaTest", host: str = "local[*]") -> SparkSession:
     """
     Create and return a SparkSession with specific configurations.
 
@@ -11,8 +11,8 @@ def get_spark(app_name: str, host: str = "local[*]") -> SparkSession:
 
     builder = (
         SparkSession.builder
-        .appName("DeltaTest")
-        .master("local[*]")
+        .appName(app_name)
+        .master(host)
         .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
         .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
     )

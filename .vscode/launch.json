@@ -5,8 +5,9 @@
             "name": "Python: Debug main",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/main.py",
+            "program": "${workspaceFolder}/jobs/main.py",
             "console": "integratedTerminal",
+            "python.analysis.extraPaths": ["./"],
             "args": [
                 "--env",
                 "dev"

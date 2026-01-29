@@ -11,6 +11,6 @@ def get_project_root():
 def resolve_path(relative_path: str):
     return get_project_root() + relative_path
 
-str = get_project_root() + "\\config\\dev.yaml"
+str = get_project_root() + "/config/dev.yaml"
 
 print(str)

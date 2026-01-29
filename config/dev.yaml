@@ -1,18 +1,18 @@
 env: dev
 
 paths:
-  employees: \dataset\employee_records.csv
-  sales: \dataset\new_sales.csv
-  cities: \dataset\cities.csv
-  water_mark: \logs\watermark\watermark.json
+  employees: /dataset/employee_records.csv
+  sales: /dataset/new_sales.csv
+  cities: /dataset/cities.csv
+  water_mark: /logs/watermark/watermark.json
 
 output:
-  curated: \output\curated\
-  gold: \output\gold\
-  employee_dim: \output\curated\employee_dim\
-  city_dim: \output\curated\city_dim\
-  sales_fact: \output\gold\sales_fact\
-  date_dim: \output\curated\date_dim\
+  curated: /output/curated/
+  gold: /output/gold/
+  employee_dim: /output/curated/employee_dim/
+  city_dim: /output/curated/city_dim/
+  sales_fact: /output/gold/sales_fact/
+  date_dim: /output/curated/date_dim/
 
 spark:
   shuffle_partitions: 200
