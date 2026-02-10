@@ -1,6 +1,6 @@
 import yaml
 import boto3
-from utils.path_utils import get_project_root
+from src.utils.path_utils import get_project_root
 
 def load_config(env: str):
     """
@@ -21,7 +21,7 @@ def load_config(env: str):
         response = s3_client.get_object(Bucket=bucket, Key=key)
         config = yaml.safe_load(response["Body"].read())
     elif env == "dev":
-        with open(get_project_root() + f"\\config\\{env}.yaml", "r") as file:
+        with open(get_project_root() + f"/config/{env}.yaml", "r") as file:
             config = yaml.safe_load(file)
 
     return config

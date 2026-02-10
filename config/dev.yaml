@@ -1,18 +1,24 @@
 env: dev
 
 paths:
-  employees: \dataset\employee_records.csv
-  sales: \dataset\new_sales.csv
-  cities: \dataset\cities.csv
-  water_mark: \logs\watermark\watermark.json
+  olist_customers: /dataset/olist_customers_dataset.csv
+  olist_orders: /dataset/olist_orders_dataset.csv
+  olist_payments: /dataset/olist_order_payments_dataset.csv
+  olist_geolocation: /dataset/olist_geolocation_dataset.csv
+  olist_order_items: /dataset/olist_order_items_dataset.csv
+  olist_products: /dataset/olist_products_dataset.csv
+  olist_sellers: /dataset/olist_sellers_dataset.csv
+  olist_order_reviews: /dataset/olist_order_reviews_dataset.csv
+  water_mark: /logs/watermark/watermark.json
 
 output:
-  curated: \output\curated\
-  gold: \output\gold\
-  employee_dim: \output\curated\employee_dim\
-  city_dim: \output\curated\city_dim\
-  sales_fact: \output\gold\sales_fact\
-  date_dim: \output\curated\date_dim\
+  curated: /output/curated/
+  gold: /output/gold/
+  employee_dim: /output/curated/employee_dim/
+  city_dim: /output/curated/city_dim/
+  sales_fact: /output/gold/sales_fact/
+  date_dim: /output/curated/date_dim/
+  fact_orders_360: /output/curated/fact_orders_360/
 
 spark:
   shuffle_partitions: 200

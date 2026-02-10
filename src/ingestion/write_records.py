@@ -1,6 +1,6 @@
 import os
 from pyspark.sql import DataFrame
-from utils.enum import WriteMode as mode
+from src.utils.enum import WriteMode as mode
 
 def write_partquest(df:DataFrame, mode:mode, path:str, *partition_col) -> None:
     """
@@ -52,4 +52,4 @@ def write_parquet_delta(df:DataFrame, mode:mode, path:str, *partition_col) -> No
     if partition_col:
         writer = writer \
         .partitionBy(partition_col)
-    writer.format("delta").save(path)
+    writer.option("overwriteSchema", "true").format("delta").save(path)
