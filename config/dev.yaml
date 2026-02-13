@@ -19,6 +19,7 @@ output:
   sales_fact: /output/gold/sales_fact/
   date_dim: /output/curated/date_dim/
   fact_orders_360: /output/curated/fact_orders_360/
+  dim_customer_order_metrics: /output/curated/dim_customer_order_metrics/
 
 spark:
   shuffle_partitions: 200

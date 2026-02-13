@@ -14,7 +14,7 @@ from src.utils.WatermarkReader import WatermarkReader
 from pyspark.sql.functions import *
 from src.utils.enum import WriteMode
 from src.utils.runtime_args import get_env_arg
-from src.transformations.common_func import multi_join
+from src.transformations.enrichment import enrich_customer as enrich_cus
 
 def main():
     # ------------------------------
@@ -38,51 +38,22 @@ def main():
     # Watermark Management
     # ----------------------------
     if env == 'dev':
-        watermark_manager = WaterMarkManager(config['paths']['water_mark'])
+        watermark_manager = WaterMarkManager(resolve_path(config['paths']['water_mark']))
     else:
-        watermark_manager = WatermarkReader(config['paths']['water_mark'])
+        watermark_manager = WatermarkReader(resolve_path(config['paths']['water_mark']))
 
     # ----------------------------
     # Ingestion
     # ----------------------------
 
-    olist_customers_df = records.read_records_csv(spark, resolve_path(config['paths']['olist_customers']), oil_Customers_schema)
-    olist_orders_df = records.read_records_csv(spark, resolve_path(config['paths']['olist_orders']), oil_Orders_schema)
-    olist_payments_df = records.read_records_csv(spark, resolve_path(config['paths']['olist_payments']), oil_OrderPayments_schema)
-    olist_geolocation_df = records.read_records_csv(spark, resolve_path(config['paths']['olist_geolocation']), oil_GeoLocation_schema)
-    olist_order_items_df = records.read_records_csv(spark, resolve_path(config['paths']['olist_order_items']), oil_OrderItems_schema)
-    olist_products_df = records.read_records_csv(spark, resolve_path(config['paths']['olist_products']), oil_Products_schema)
-    olist_sellers_df = records.read_records_csv(spark, resolve_path(config['paths']['olist_sellers']), oil_Sellers_schema)
-    olist_order_reviews_df = records.read_records_csv(spark, resolve_path(config['paths']['olist_order_reviews']), oil_OrderReviews_schema)
-    logger.info("Ingestion completed...!")
+    olist_customer_data = records.read_records_parquet(spark, resolve_path(config['output']['fact_orders_360']))
 
     # ----------------------------
-    # Data Quality Checks
+    # Enrich Transactions
     # ----------------------------
 
-    olist_customers_df = data_check.check_nulls(olist_customers_df, ['customer_id'], 'olist_customers')
-    olist_orders_df = data_check.check_nulls(olist_orders_df, ['order_id'], 'olist_orders')
-    olist_payments_df = data_check.check_nulls(olist_payments_df, ['order_id'], 'olist_payments')
-    olist_products_df = data_check.check_nulls(olist_products_df, ['product_id'], 'olist_products')
-    olist_sellers_df = data_check.check_nulls(olist_sellers_df, ['seller_id'], 'olist_sellers')
-    logger.info("Data Quality Checks completed...!")
-
-    # ----------------------------
-    # Deduplication
-    # ----------------------------
-
-    olist_customers_df_dep = data_check.deduplicate(olist_customers_df, ['customer_id'])
-    olist_orders_df_dep = data_check.deduplicate(olist_orders_df, ['order_id'])
-    olist_payments_df_dep = data_check.deduplicate(olist_payments_df, ['order_id','payment_sequential'])
-    olist_products_df_dep = data_check.deduplicate(olist_products_df, ['product_id'])
-    olist_sellers_df_dep = data_check.deduplicate(olist_sellers_df, ['seller_id'])
-    logger.info("Deduplication completed...!")
-
-    # ----------------------------
-    # Deduplication
-    # ----------------------------
-
-    
+    dim_customer_order_metrics = enrich_cus.dim_customer_order_metrics_sql(spark, olist_customer_data)
+    write.write_parquet_delta(dim_customer_order_metrics, WriteMode.OVERWRITE, resolve_path(config['output']['dim_customer_order_metrics']))
 
 if __name__ == "__main__":
     main()

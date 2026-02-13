@@ -7,7 +7,7 @@ def total_items(df:DataFrame) -> DataFrame:
             F.count("order_item_id").alias("total_items"),
             F.sum("price").alias("total_price"),
             F.sum("freight_value").alias("total_freight")
-        ).withColumn("total_order_value", F.col("total_price") + F.col("total_freight"))
+        ).withColumn("total_order_value", F.round(F.col("total_price") + F.col("total_freight"),2))
 
 def delivery_days(df:DataFrame) -> DataFrame:
     return df.withColumn("delivery_days", F.date_diff(

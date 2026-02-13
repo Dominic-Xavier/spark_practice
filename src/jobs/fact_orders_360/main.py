@@ -109,8 +109,10 @@ def main():
     ]
 
     fact_orders_360 = com_fun.multi_join(olist_order_items_df,join_configs)
-    fact_orders_360_df = com_fun.select_columns(fact_orders_360, "customer_id", "order_id", "customer_city", "customer_state", "seller_id", "product_id", "total_items", 
-                                                "total_order_value", "payment_type", "review_score", "order_purchase_timestamp", "delivery_days")
+    fact_orders_360_df = com_fun.select_columns(fact_orders_360, "customer_id", "order_id", "customer_city", "customer_state", "seller_id", "product_id", 
+        "total_items", "total_order_value", "payment_type", "review_score", "order_purchase_timestamp", "delivery_days", "order_purchase_timestamp")
+    
+    fact_orders_360_df.show()
 
     # Write the final DataFrame to the target path
     write.write_parquet_delta(fact_orders_360_df, WriteMode.OVERWRITE, resolve_path(config['output']['fact_orders_360']), "customer_state")
