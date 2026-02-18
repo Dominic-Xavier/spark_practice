@@ -37,7 +37,6 @@ def read_records_parquet(spark, path, _schema=None):
         reader = reader.schema(_schema)
     else:
         reader = reader.option("inferSchema", True)
-    
     return reader.parquet(f"file:///{path}")
 
 def read_records_delta(spark, path):
@@ -47,6 +46,7 @@ def read_records_delta(spark, path):
     return (
         spark
         .read
+        .option("recursiveFileLookup", "true")
         .format("delta")
         .load(path)
     )

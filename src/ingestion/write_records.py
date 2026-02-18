@@ -2,7 +2,7 @@ import os
 from pyspark.sql import DataFrame
 from src.utils.enum import WriteMode as mode
 
-def write_partquest(df:DataFrame, mode:mode, path:str, *partition_col) -> None:
+def write_partquet(df:DataFrame, mode:mode, path:str, *partition_col) -> None:
     """
     Write DataFrame to Parquet files partitioned by specified column
     """

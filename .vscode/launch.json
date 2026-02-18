@@ -5,7 +5,7 @@
             "name": "Python: Debug main",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/main.py",
+            "program": "${workspaceFolder}/src/jobs/customer_order_metrics/main.py",
             "console": "integratedTerminal",
             "args": [
                 "--env",

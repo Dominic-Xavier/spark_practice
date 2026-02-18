@@ -47,6 +47,8 @@ def main():
     # ----------------------------
 
     olist_customer_data = records.read_records_parquet(spark, resolve_path(config['output']['fact_orders_360']))
+    olist_customer_data.printSchema()
+    #print(olist_customer_data.printSchema())
 
     # ----------------------------
     # Enrich Transactions
