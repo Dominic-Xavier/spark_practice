@@ -1,8 +1,9 @@
 import json
 import boto3
 from botocore.exceptions import ClientError
+from src.utils.WaterMark import WaterMark
 
-class WatermarkReader:
+class WatermarkReader(WaterMark):
 
     def __init__(self, s3_path):
         """

@@ -2,13 +2,14 @@ import os
 import json
 from botocore.exceptions import ClientError
 from json import JSONDecodeError
+from src.utils.WaterMark import WaterMark
 
-class WaterMarkManager:
+class WaterMarkManager(WaterMark):
 
     def __init__(self, watermark_file_path: str, logger=None):
         self.watermark_file_path = watermark_file_path
         self.logger = logger
-
+    
     def _create_file_if_not_exists(self):
         """
         Creates watermark file if it does not exist and directory exists
@@ -48,7 +49,8 @@ class WaterMarkManager:
         
 
         try:
-            data = json.loads(self.watermark_file_path)
+            with open(self.watermark_file_path, "r") as f:
+                data = json.load(f)
         except JSONDecodeError:
             return None
 

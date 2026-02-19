@@ -40,9 +40,12 @@ def main():
     # Watermark Management
     # ----------------------------
     if env == 'dev':
-        watermark_manager = WaterMarkManager(config['paths']['water_mark'])
+        watermark_manager = WaterMarkManager(resolve_path(config['paths']['water_mark']))
     else:
-        watermark_manager = WatermarkReader(config['paths']['water_mark'])
+        watermark_manager = WatermarkReader(resolve_path(config['paths']['water_mark']))
+    
+    max_time = watermark_manager.read_watermark("order_purchase_timestamp")
+    max_ts = com_fun.dateTimeConvert(max_time, '%Y-%m-%d %H:%M:%S')
 
     # ----------------------------
     # Ingestion
@@ -82,6 +85,8 @@ def main():
     olist_order_reviews_df_dep = data_check.deduplicate(olist_order_reviews, ['order_id'])
     logger.info("Deduplication completed...!")
 
+    
+
     olist_order_items = en_order.total_items(olist_order_items_df)
     olist_orders = en_order.delivery_days(olist_orders_df_dep)
 
@@ -112,15 +117,26 @@ def main():
     fact_orders_360_df = com_fun.select_columns(fact_orders_360, "customer_id", "order_id", "customer_city", "customer_state", "seller_id", "product_id", 
         "total_items", "total_order_value", "payment_type", "review_score", "delivery_days", "order_purchase_timestamp")
     
-    fact_orders_360.printSchema()
-    fact_orders_360_df.printSchema()
+    staging_df = en_order.prepare_Fact_360_staging(fact_orders_360_df)
 
-    # Write the final DataFrame to the target path
-    write.write_parquet_delta(fact_orders_360_df, WriteMode.OVERWRITE, resolve_path(config['output']['fact_orders_360']), "customer_state")
+    target_df = records.read_records_parquet(spark, resolve_path(config['output']['fact_orders_360']))
+
+    source_max_ts = fact_orders_360_df.agg(max(col("order_purchase_timestamp")).alias("max_ts")).collect()[0]["max_ts"]
+    print("max_ts", source_max_ts)
+    
+    if not max_ts:
+        # Write the final DataFrame to the target path
+        write.write_parquet_delta(staging_df, WriteMode.OVERWRITE, resolve_path(config['output']['fact_orders_360']), "customer_state")
+    elif source_max_ts>max_ts:
+        
+        final_staging = staging_df.filter(max(col("order_purchase_timestamp"))>max_ts)
+        final_Fact_360_df = en_order.upsert(spark, final_staging, target_df)
+        write.write_parquet_delta(final_Fact_360_df, WriteMode.APPEND, resolve_path(config['output']['fact_orders_360']), "customer_state")
     #fact_orders_360_df.show(truncate=False)
-
-    test = records.read_records_parquet(spark, resolve_path(config['output']['fact_orders_360']))
-    test.printSchema()
+    else:
+        logger.info("No Data has been changed...!!!")
+    
+    watermark_manager.update_watermark(order_purchase_timestamp = source_max_ts)
 
     logger.info("Pipeline completed successfully...!")
 
