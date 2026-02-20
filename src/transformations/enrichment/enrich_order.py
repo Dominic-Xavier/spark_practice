@@ -43,25 +43,13 @@ def prepare_Fact_360_staging(source_df:DataFrame):
 def upsert(spark: SparkSession, source:DataFrame, target:DataFrame):
     target.createOrReplaceTempView("target")
     source.createOrReplaceTempView("source")
-    final_df = spark.sql("""
-                Merge  into source as s
-                using target as t
-                on s.customer_id = t.customer_id
-                when matched AND t.record_hash != s.record_hash THEN 
-                    update set
-                        t.customer_id = s.customer_id,
-                        t.order_id = s.order_id,
-                        t.customer_city = s.customer_city,
-                        t.customer_state = s.customer_state
-                        t.seller_id = s.seller_id
-                        t.product_id = s.product_id
-                        t.total_items = s.total_items
-                        t.total_order_value = s.total_order_value
-                        t.payment_type = s.payment_type
-                        t.review_score = s.review_score
-                        t.delivery_days = s.delivery_days
-                        t.order_purchase_timestamp = s.order_purchase_timestamp
-                when not matched
-                    insert *
-            """)
-    return final_df
+    spark.sql("""
+        MERGE INTO target t
+        USING source s
+        ON t.customer_id = s.customer_id
+
+        WHEN MATCHED AND t.record_hash != s.record_hash THEN
+            UPDATE SET *
+        WHEN NOT MATCHED THEN
+            INSERT *
+    """)

@@ -43,9 +43,10 @@ def main():
         watermark_manager = WaterMarkManager(resolve_path(config['paths']['water_mark']))
     else:
         watermark_manager = WatermarkReader(resolve_path(config['paths']['water_mark']))
-    
+    max_ts = None
     max_time = watermark_manager.read_watermark("order_purchase_timestamp")
-    max_ts = com_fun.dateTimeConvert(max_time, '%Y-%m-%d %H:%M:%S')
+    if max_time:
+        max_ts = com_fun.dateTimeConvert(max_time, '%Y-%m-%d %H:%M:%S')
 
     # ----------------------------
     # Ingestion
@@ -118,20 +119,25 @@ def main():
         "total_items", "total_order_value", "payment_type", "review_score", "delivery_days", "order_purchase_timestamp")
     
     staging_df = en_order.prepare_Fact_360_staging(fact_orders_360_df)
+    staging_df.printSchema()
 
-    target_df = records.read_records_parquet(spark, resolve_path(config['output']['fact_orders_360']))
+    try:
+        target_df = records.read_records_delta(spark, resolve_path(config['output']['fact_orders_360']))
+        target_df.printSchema()
+    except Exception as e:
+        print("Error", e)
 
-    source_max_ts = fact_orders_360_df.agg(max(col("order_purchase_timestamp")).alias("max_ts")).collect()[0]["max_ts"]
+    source_max_ts = staging_df.agg(max(col("order_purchase_timestamp")).alias("max_ts")).collect()[0]["max_ts"]
     print("max_ts", source_max_ts)
     
     if not max_ts:
         # Write the final DataFrame to the target path
         write.write_parquet_delta(staging_df, WriteMode.OVERWRITE, resolve_path(config['output']['fact_orders_360']), "customer_state")
+
     elif source_max_ts>max_ts:
-        
-        final_staging = staging_df.filter(max(col("order_purchase_timestamp"))>max_ts)
-        final_Fact_360_df = en_order.upsert(spark, final_staging, target_df)
-        write.write_parquet_delta(final_Fact_360_df, WriteMode.APPEND, resolve_path(config['output']['fact_orders_360']), "customer_state")
+
+        final_staging = staging_df.filter(col("order_purchase_timestamp") > max_ts)
+        en_order.upsert(spark, final_staging, target_df)
     #fact_orders_360_df.show(truncate=False)
     else:
         logger.info("No Data has been changed...!!!")

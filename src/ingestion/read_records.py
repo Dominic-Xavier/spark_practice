@@ -46,7 +46,6 @@ def read_records_delta(spark, path):
     return (
         spark
         .read
-        .option("recursiveFileLookup", "true")
         .format("delta")
         .load(path)
     )
