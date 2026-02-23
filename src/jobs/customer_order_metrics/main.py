@@ -27,7 +27,7 @@ def main():
     # Initialize Spark & Logger
     #-----------------------------
 
-    spark = get_spark("end_to_end_pipeline")
+    spark = get_spark("Customer Order Metrices")
     logger = get_logger("PIPELINE")
 
     config = load_config(env)

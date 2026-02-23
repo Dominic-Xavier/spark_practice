@@ -40,11 +40,10 @@ def prepare_Fact_360_staging(source_df:DataFrame):
             )
     return staged_df
 
-def upsert(spark: SparkSession, source:DataFrame, target:DataFrame):
-    target.createOrReplaceTempView("target")
+def upsert(spark: SparkSession, source:DataFrame, target_path:str):
     source.createOrReplaceTempView("source")
-    spark.sql("""
-        MERGE INTO target t
+    spark.sql(f"""
+        MERGE INTO delta.`{target_path}` t
         USING source s
         ON t.customer_id = s.customer_id
 
@@ -53,3 +52,21 @@ def upsert(spark: SparkSession, source:DataFrame, target:DataFrame):
         WHEN NOT MATCHED THEN
             INSERT *
     """)
+
+from delta.tables import DeltaTable
+
+def upsert_logic(spark: SparkSession, source: DataFrame, target_path: str):
+
+    delta_table = DeltaTable.forPath(spark, target_path)
+    (
+        delta_table.alias("t")
+        .merge(
+            source.alias("s"),
+            "t.customer_id = s.customer_id"
+        )
+        .whenMatchedUpdate(
+            condition="t.record_hash != s.record_hash"
+        )
+        .whenNotMatchedInsertAll()
+        .execute()
+    )

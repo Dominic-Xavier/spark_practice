@@ -4,9 +4,9 @@ from pyspark.sql import functions as F
 def dim_customer_order_metrics_sql(spark: SparkSession, df: DataFrame)->DataFrame:
     df.createOrReplaceTempView("customer_dim_table")
     return spark.sql('''
-                select 
-                    customer_id, 
-                    count(distinct order_id) as total_orders, 
+                select
+                    customer_id,
+                    count(distinct order_id) as total_orders,
                     round(sum(total_order_value),2) as total_spent,
                     round(avg(total_order_value),2) as avg_order_value,
                     min(order_purchase_timestamp) as first_order_date,
@@ -23,5 +23,4 @@ def dim_customer_order_metrics(df: DataFrame)->DataFrame:
         F.round(
             F.sum("total_order_value"),2
         ).alias("total_spent")
-
     )

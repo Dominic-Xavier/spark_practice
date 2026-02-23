@@ -16,6 +16,7 @@ from src.utils.enum import WriteMode
 from src.utils.runtime_args import get_env_arg
 from src.transformations import common_func as com_fun
 from src.transformations.enrichment import enrich_order as en_order
+from delta.tables import DeltaTable
 
 
 def main():
@@ -86,7 +87,7 @@ def main():
     olist_order_reviews_df_dep = data_check.deduplicate(olist_order_reviews, ['order_id'])
     logger.info("Deduplication completed...!")
 
-    
+    target_path = resolve_path(config['output']['fact_orders_360'])
 
     olist_order_items = en_order.total_items(olist_order_items_df)
     olist_orders = en_order.delivery_days(olist_orders_df_dep)
@@ -115,36 +116,45 @@ def main():
     ]
 
     fact_orders_360 = com_fun.multi_join(olist_order_items_df,join_configs)
-    fact_orders_360_df = com_fun.select_columns(fact_orders_360, "customer_id", "order_id", "customer_city", "customer_state", "seller_id", "product_id", 
+    fact_orders_360_df = com_fun.select_columns(fact_orders_360, "customer_id", "order_id", "customer_city", "customer_state", "seller_id", "product_id",
         "total_items", "total_order_value", "payment_type", "review_score", "delivery_days", "order_purchase_timestamp")
     
     staging_df = en_order.prepare_Fact_360_staging(fact_orders_360_df)
-    staging_df.printSchema()
 
-    try:
-        target_df = records.read_records_delta(spark, resolve_path(config['output']['fact_orders_360']))
-        target_df.printSchema()
-    except Exception as e:
-        print("Error", e)
-
-    source_max_ts = staging_df.agg(max(col("order_purchase_timestamp")).alias("max_ts")).collect()[0]["max_ts"]
-    print("max_ts", source_max_ts)
-    
-    if not max_ts:
-        # Write the final DataFrame to the target path
-        write.write_parquet_delta(staging_df, WriteMode.OVERWRITE, resolve_path(config['output']['fact_orders_360']), "customer_state")
-
-    elif source_max_ts>max_ts:
-
-        final_staging = staging_df.filter(col("order_purchase_timestamp") > max_ts)
-        en_order.upsert(spark, final_staging, target_df)
-    #fact_orders_360_df.show(truncate=False)
+    if max_ts is not None:
+        incremental_df = staging_df.filter(col("order_purchase_timestamp") > max_ts)
     else:
-        logger.info("No Data has been changed...!!!")
+        incremental_df = staging_df
     
-    watermark_manager.update_watermark(order_purchase_timestamp = source_max_ts)
+    incremental_df.show()
+
+    if incremental_df.rdd.isEmpty():
+        logger.info("No new data")
+        logger.info("Pipeline completed successfully...!")
+        return
+    
+
+    # 2️⃣ First run vs subsequent run
+    if not DeltaTable.isDeltaTable(spark, target_path):
+        write.write_parquet_delta(incremental_df, WriteMode.OVERWRITE, target_path, "customer_state")
+    else:
+        en_order.upsert(spark, incremental_df, target_path)
+
+    # 3️⃣ Update watermark
+    new_max_ts = incremental_df.agg(
+        max("order_purchase_timestamp")
+    ).first()[0]
+
+    watermark_manager.update_watermark(order_purchase_timestamp=new_max_ts)
 
     logger.info("Pipeline completed successfully...!")
+    
+    '''
+    en_order.upsert(spark, incremental_df, target_df)
+    
+    max_time_ts = incremental_df.agg(max(col("order_purchase_timestamp")).alias("max_time_ts"))
+    watermark_manager.update_watermark(order_purchase_timestamp = max_time_ts)
+    '''
 
 if __name__ == "__main__":
     main()
