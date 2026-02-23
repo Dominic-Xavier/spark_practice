@@ -16,6 +16,7 @@ from src.utils.enum import WriteMode
 from src.utils.runtime_args import get_env_arg
 
 from src.transformations.enrichment import scdLogic as scd
+from delta.tables import DeltaTable
 
 def main():
 
@@ -43,9 +44,11 @@ def main():
         watermark_manager = WaterMarkManager(resolve_path(config['paths']['water_mark']))
     else:
         watermark_manager = WatermarkReader(resolve_path(config['paths']['water_mark']))
-    
-    watermark_manager.read_watermark("customer_count")
 
+    tar_customer = resolve_path(config['output']['customer_scd_type_2'])
+    tar_product = resolve_path(config['output']['product_scd_type_2'])
+    tar_seller = resolve_path(config['output']['seller_scd_type_2'])
+    
     olist_customers_df = records.read_records_csv(spark, resolve_path(config['paths']['olist_customers']), oil_Customers_schema)
     olist_products_df = records.read_records_csv(spark, resolve_path(config['paths']['olist_products']), oil_Products_schema)
     olist_sellers_df = records.read_records_csv(spark, resolve_path(config['paths']['olist_sellers']), oil_Sellers_schema)
@@ -67,12 +70,17 @@ def main():
     olist_sellers_df_dep = data_check.deduplicate(olist_sellers_df, ['seller_id'])
 
     olist_customer = scd.customer_staging(olist_customers_df_dep)
-    olist_products = scd.customer_staging(olist_products_df_dep)
-    olist_sellers = scd.customer_staging(olist_sellers_df_dep)
+    olist_products = scd.product_staging(olist_products_df_dep)
+    olist_sellers = scd.seller_staging(olist_sellers_df_dep)
 
-    scd.scd_type2_merge_customer(spark, olist_customer, config['output']['customer_scd_type_2'])
-    scd.scd_type2_merge_Product(spark, olist_products, config['output']['product_scd_type_2'])
-    scd.scd_type2_merge_Seller(spark, olist_sellers, config['output']['seller_scd_type_2'])
+    if DeltaTable.isDeltaTable(spark, tar_customer):
+        scd.scd_type2_merge_customer(spark, olist_customer, tar_customer)
+        scd.scd_type2_merge_Product(spark, olist_products, tar_product)
+        scd.scd_type2_merge_Seller(spark, olist_sellers, tar_seller)
+    else:
+        write.write_parquet_delta(olist_customer, WriteMode.OVERWRITE, tar_customer)
+        write.write_parquet_delta(olist_products, WriteMode.OVERWRITE, tar_product)
+        write.write_parquet_delta(olist_sellers, WriteMode.OVERWRITE, tar_seller)
     
 if __name__ == "__main__":
     main()

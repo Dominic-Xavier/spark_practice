@@ -148,13 +148,6 @@ def main():
     watermark_manager.update_watermark(order_purchase_timestamp=new_max_ts)
 
     logger.info("Pipeline completed successfully...!")
-    
-    '''
-    en_order.upsert(spark, incremental_df, target_df)
-    
-    max_time_ts = incremental_df.agg(max(col("order_purchase_timestamp")).alias("max_time_ts"))
-    watermark_manager.update_watermark(order_purchase_timestamp = max_time_ts)
-    '''
 
 if __name__ == "__main__":
     main()
