@@ -28,7 +28,7 @@ def seller_staging(staging_df:DataFrame):
     })
 
 def scd_type2_merge_customer(spark: SparkSession, source_df:DataFrame, target_path:str):
-    delta_table = DeltaTable = DeltaTable.forPath(spark, target_path)
+    delta_table = DeltaTable.forPath(spark, target_path)
     (
         delta_table.alias("t")
         .merge(
@@ -97,7 +97,7 @@ def scd_type2_merge_customer_sql(spark: SparkSession, source_df:DataFrame, targe
     ''')
 
 def scd_type2_merge_Product(spark: SparkSession, source_df:DataFrame, target_path:str):
-    delta_table = DeltaTable = DeltaTable.forPath(spark, target_path)
+    delta_table = DeltaTable.forPath(spark, target_path)
     (
         delta_table.alias("t")
         .merge(
@@ -130,7 +130,7 @@ def scd_type2_merge_Product(spark: SparkSession, source_df:DataFrame, target_pat
 
 def scd_type2_merge_Seller(spark: SparkSession, source_df:DataFrame, target_path:str):
 
-    delta_table = DeltaTable = DeltaTable.forPath(spark, target_path)
+    delta_table = DeltaTable.forPath(spark, target_path)
     (
         delta_table.alias("t")
         .merge(

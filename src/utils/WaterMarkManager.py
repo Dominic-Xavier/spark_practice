@@ -55,11 +55,8 @@ class WaterMarkManager(WaterMark):
             return None
 
         # Handle empty JSON object
-        if not data or data == {}:
+        if not data or data == {} or key not in data:
             return None
-
-        if key not in data:
-            raise KeyError(f"Invalid key: {key}")
 
         return data[key]
 

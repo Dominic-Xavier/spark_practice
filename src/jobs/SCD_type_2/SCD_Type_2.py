@@ -75,11 +75,17 @@ def main():
 
     if DeltaTable.isDeltaTable(spark, tar_customer):
         scd.scd_type2_merge_customer(spark, olist_customer, tar_customer)
-        scd.scd_type2_merge_Product(spark, olist_products, tar_product)
-        scd.scd_type2_merge_Seller(spark, olist_sellers, tar_seller)
     else:
         write.write_parquet_delta(olist_customer, WriteMode.OVERWRITE, tar_customer)
+    
+    if DeltaTable.isDeltaTable(spark, tar_product):
+        scd.scd_type2_merge_Product(spark, olist_products, tar_product)
+    else:
         write.write_parquet_delta(olist_products, WriteMode.OVERWRITE, tar_product)
+    
+    if DeltaTable.isDeltaTable(spark, tar_seller):
+        scd.scd_type2_merge_Seller(spark, olist_sellers, tar_seller)
+    else:
         write.write_parquet_delta(olist_sellers, WriteMode.OVERWRITE, tar_seller)
     
 if __name__ == "__main__":
