@@ -8,7 +8,7 @@ paths:
   olist_order_items: s3://oil-list-1002/Bronze_Layer/olist_order_items_dataset.csv
   olist_products: s3://oil-list-1002/Bronze_Layer/olist_products_dataset.csv
   olist_sellers: s3://oil-list-1002/Bronze_Layer/olist_sellers_dataset.csv
-  olist_order_reviews: s3://oil-list-1002/Bronze_Layer/olist_order_reviews_dataset.csv
+  olist_order_reviews: s3://oil-list-1002/Bronze_Layer/olist_order_reviews_datasePsv
   water_mark: s3://oil-list-1002/Git-Code/logs/watermark/watermark.json
 
 output:

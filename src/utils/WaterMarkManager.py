@@ -1,6 +1,5 @@
 import os
 import json
-from botocore.exceptions import ClientError
 from json import JSONDecodeError
 from src.utils.WaterMark import WaterMark
 

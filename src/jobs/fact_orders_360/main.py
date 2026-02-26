@@ -1,4 +1,6 @@
-from src.utils.spark_session import get_spark
+# -*- coding: utf-8 -*-
+
+#from src.utils.spark_session import get_spark
 from src.utils.logger import get_logger
 from src.utils.path_utils import resolve_path
 

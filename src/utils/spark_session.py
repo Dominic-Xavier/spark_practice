@@ -1,13 +1,13 @@
 from pyspark.sql import SparkSession
-from delta import configure_spark_with_delta_pip
 
 def get_spark(app_name: str, host: str = "local[*]") -> SparkSession:
-    """
+    '''
     Create and return a SparkSession with specific configurations.
 
     Returns:
         SparkSession: Configured SparkSession object.
-    """
+    '''
+    
 
     builder = (
         SparkSession.builder
@@ -24,7 +24,7 @@ def get_spark(app_name: str, host: str = "local[*]") -> SparkSession:
         .config("spark.sql.adaptive.advisoryPartitionSizeInBytes", 128 * 1024 * 1024)
     )
 
-    spark = configure_spark_with_delta_pip(builder).getOrCreate()
+    spark = builder.getOrCreate()
 
     print("Spark Version:", spark.version)
 
