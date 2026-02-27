@@ -20,8 +20,9 @@ class WatermarkReader(WaterMark):
         path = self.s3_path.replace("s3://", "")
         bucket, key = path.split("/", 1)
         return bucket, key
+    
 
-    def _create_empty_file_if_not_exists(self):
+    def _create_file_if_not_exists(self):
         """
         Creates an empty JSON file {} if file does not exist
         """
