@@ -44,8 +44,8 @@ jobs:
         aws s3 cp glue_libs.zip \
           s3://oil-list-1002/Git-Code/libs/glue_libs.zip
 
-    - name: Trigger AWS Glue Job
-      run: |
-        aws glue start-job-run \
-          --job-name SparkJob \
-          --arguments '{"--env":"prod"}'
+    #- name: Trigger AWS Glue Job
+      #run: |
+        #aws glue start-job-run \
+          #--job-name SparkJob \
+          #--arguments '{"--env":"prod"}'
