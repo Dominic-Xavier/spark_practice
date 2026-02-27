@@ -45,7 +45,7 @@ class WatermarkReader(WaterMark):
         bucket, object_key = self._parse_s3_path()
 
         # Ensure file exists
-        self._create_empty_file_if_not_exists()
+        self._create_file_if_not_exists()
 
         try:
             response = self.s3.get_object(Bucket=bucket, Key=object_key)
@@ -69,11 +69,8 @@ class WatermarkReader(WaterMark):
 
             return data[key]
 
-        except ClientError as e:
-            if e.response["Error"]["Code"] == "NoSuchKey":
-                return None
-            else:
-                raise
+        except Exception as e:
+            return None
 
     def update_watermark(self, **data):
         """
@@ -90,7 +87,7 @@ class WatermarkReader(WaterMark):
             raise ValueError("No watermark data provided")
 
         # Ensure file exists
-        self._create_empty_file_if_not_exists()
+        self._create_file_if_not_exists()
 
         bucket, object_key = self._parse_s3_path()
 

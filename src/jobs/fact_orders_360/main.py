@@ -45,7 +45,8 @@ def main():
     if env == 'dev':
         watermark_manager = WaterMarkManager(resolve_path(config['paths']['water_mark']))
     else:
-        watermark_manager = WatermarkReader(resolve_path(config['paths']['water_mark']))
+        watermark_manager = WatermarkReader(config['paths']['water_mark'])
+    logger.info("DEBUG S3 PATH: %s", watermark_manager.s3_path)
     max_ts = None
     max_time = watermark_manager.read_watermark("order_purchase_timestamp")
     if max_time:
