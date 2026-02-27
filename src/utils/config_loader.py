@@ -13,7 +13,7 @@ def load_config(env: str):
         f"{env}.yaml"
     )"""
 
-    file_path =  f"s3://employee-records-1001/Git-Code/config/{env}.yaml"
+    file_path =  f"s3://oil-list-1002/Git-Code/config/{env}.yaml"
     s3_path = file_path.replace("s3://", "")
     bucket, key = s3_path.split("/", 1)
     if env == "prod":
