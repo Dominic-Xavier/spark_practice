@@ -100,9 +100,19 @@ class WatermarkReader(WaterMark):
             invalid_keys = set(data.keys()) - set(existing_data.keys())
             if invalid_keys:
                 raise KeyError(f"Invalid watermark keys: {invalid_keys}")
+            
 
         # Merge updates
-        existing_data.update(data)
+        # Convert datetime to ISO string before storing
+        cleaned_data = {}
+
+        for k, v in data.items():
+            if hasattr(v, "isoformat"):
+                cleaned_data[k] = v.isoformat()
+            else:
+                cleaned_data[k] = v
+
+        existing_data.update(cleaned_data)
 
         # Atomic overwrite
         self.s3.put_object(

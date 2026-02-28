@@ -2,7 +2,6 @@
 
 from src.utils.spark_session import get_spark
 from src.utils.logger import get_logger
-from src.utils.path_utils import resolve_path
 
 from src.ingestion import read_records as records
 from src.ingestion import write_records as write
@@ -56,14 +55,14 @@ def main():
     # Ingestion
     # ----------------------------
 
-    olist_customers_df = records.read_records_csv(spark, resolve_path(config['paths']['olist_customers']), oil_Customers_schema)
-    olist_orders_df = records.read_records_csv(spark, resolve_path(config['paths']['olist_orders']), oil_Orders_schema)
-    olist_payments_df = records.read_records_csv(spark, resolve_path(config['paths']['olist_payments']), oil_OrderPayments_schema)
-    olist_geolocation_df = records.read_records_csv(spark, resolve_path(config['paths']['olist_geolocation']), oil_GeoLocation_schema)
-    olist_order_items_df = records.read_records_csv(spark, resolve_path(config['paths']['olist_order_items']), oil_OrderItems_schema)
-    olist_products_df = records.read_records_csv(spark, resolve_path(config['paths']['olist_products']), oil_Products_schema)
-    olist_sellers_df = records.read_records_csv(spark, resolve_path(config['paths']['olist_sellers']), oil_Sellers_schema)
-    olist_order_reviews_df = records.read_records_csv(spark, resolve_path(config['paths']['olist_order_reviews']), oil_OrderReviews_schema)
+    olist_customers_df = records.read_records_csv(spark, config['paths']['olist_customers'], oil_Customers_schema)
+    olist_orders_df = records.read_records_csv(spark, config['paths']['olist_orders'], oil_Orders_schema)
+    olist_payments_df = records.read_records_csv(spark, config['paths']['olist_payments'], oil_OrderPayments_schema)
+    olist_geolocation_df = records.read_records_csv(spark, config['paths']['olist_geolocation'], oil_GeoLocation_schema)
+    olist_order_items_df = records.read_records_csv(spark, config['paths']['olist_order_items'], oil_OrderItems_schema)
+    olist_products_df = records.read_records_csv(spark, config['paths']['olist_products'], oil_Products_schema)
+    olist_sellers_df = records.read_records_csv(spark, config['paths']['olist_sellers'], oil_Sellers_schema)
+    olist_order_reviews_df = records.read_records_csv(spark, config['paths']['olist_order_reviews'], oil_OrderReviews_schema)
     logger.info("Ingestion completed...!")
 
     # ----------------------------
@@ -90,7 +89,7 @@ def main():
     olist_order_reviews_df_dep = data_check.deduplicate(olist_order_reviews, ['order_id'])
     logger.info("Deduplication completed...!")
 
-    target_path = resolve_path(config['output']['fact_orders_360'])
+    target_path = config['output']['fact_orders_360']
 
     olist_order_items = en_order.total_items(olist_order_items_df)
     olist_orders = en_order.delivery_days(olist_orders_df_dep)
@@ -118,8 +117,8 @@ def main():
         {"df": olist_order_reviews_df_dep, "on": "order_id", "how": "left", "broadcast": True}
     ]
 
-    fact_orders_360 = com_fun.multi_join(olist_order_items_df,join_configs)
-    fact_orders_360_df = com_fun.select_columns(fact_orders_360, "customer_id", "order_id", "customer_city", "customer_state", "seller_id", "product_id",
+    fact_orders_360 = com_fun.multi_join(olist_order_items_df, join_configs)
+    fact_orders_360_df = com_fun.select_columns(fact_orders_360, "customer_id", "order_id", "order_item_id", "customer_city", "customer_state", "seller_id", "product_id",
         "total_items", "total_order_value", "payment_type", "review_score", "delivery_days", "order_purchase_timestamp")
     
     staging_df = en_order.prepare_Fact_360_staging(fact_orders_360_df)
@@ -128,8 +127,6 @@ def main():
         incremental_df = staging_df.filter(col("order_purchase_timestamp") > max_ts)
     else:
         incremental_df = staging_df
-    
-    incremental_df.show()
 
     if incremental_df.rdd.isEmpty():
         logger.info("No new data")

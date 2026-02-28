@@ -10,7 +10,7 @@ def read_records_csv(spark, path, _schema=None):
     else:
         reader = reader.option("inferSchema", True)
     
-    return reader.csv(f"file:///{path}")
+    return reader.csv(path)
 
 def read_records_json(spark, path, _schema=None):
     """
@@ -24,7 +24,7 @@ def read_records_json(spark, path, _schema=None):
     else:
         reader = reader.option("inferSchema", True)
     
-    return reader.json(f"file:///{path}")
+    return reader.json(path)
 
 def read_records_parquet(spark, path, _schema=None):
     """
@@ -37,7 +37,7 @@ def read_records_parquet(spark, path, _schema=None):
         reader = reader.schema(_schema)
     else:
         reader = reader.option("inferSchema", True)
-    return reader.parquet(f"file:///{path}")
+    return reader.parquet(path)
 
 def read_records_delta(spark, path):
     """
