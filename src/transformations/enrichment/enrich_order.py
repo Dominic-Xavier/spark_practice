@@ -44,8 +44,8 @@ def upsert(spark: SparkSession, source:DataFrame, target_path:str):
     spark.sql(f"""
         MERGE INTO delta.`{target_path}` t
         USING source s
-        ON t.order_id = s.order_id AND
-        t.order_item_id = s.order_item_id
+        ON t.order_id = s.order_id
+        AND t.order_item_id = s.order_item_id
 
         WHEN MATCHED AND t.record_hash != s.record_hash THEN
             UPDATE SET *

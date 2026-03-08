@@ -8,7 +8,6 @@ from src.ingestion import write_records as write
 
 from src.validations import data_quality as data_check
 from src.utils.config_loader import load_config
-from src.utils.original_schemas import *
 
 from src.utils.WaterMarkManager import WaterMarkManager
 from src.utils.WatermarkReader import WatermarkReader
@@ -18,6 +17,7 @@ from src.utils.runtime_args import get_env_arg
 from src.transformations import common_func as com_fun
 from src.transformations.enrichment import enrich_order as en_order
 from delta.tables import DeltaTable
+from src.utils.original_schemas import *
 
 
 def main():
@@ -27,6 +27,8 @@ def main():
 
     env = get_env_arg()
 
+    
+
     # ----------------------------
     # Initialize Spark & Logger
     #-----------------------------
@@ -34,22 +36,61 @@ def main():
     spark = get_spark("end_to_end_pipeline")
     logger = get_logger("PIPELINE")
 
+    spark.catalog.clearCache()
+
+    logger.info("Glue Catalog Implementation: %s", spark.conf.get("spark.sql.catalogImplementation"))
+
+    print(spark.conf.get("spark.sql.catalogImplementation"))
+
     config = load_config(env)
 
     logger.info("Pipeline started...!")
+
 
     # ----------------------------
     # Watermark Management
     # ----------------------------
     if env == 'dev':
-        watermark_manager = WaterMarkManager(resolve_path(config['paths']['water_mark']))
+        watermark_manager = WaterMarkManager(config['paths']['water_mark'])
     else:
         watermark_manager = WatermarkReader(config['paths']['water_mark'])
-    logger.info("DEBUG S3 PATH: %s", watermark_manager.s3_path)
+    
     max_ts = None
     max_time = watermark_manager.read_watermark("order_purchase_timestamp")
     if max_time:
         max_ts = com_fun.dateTimeConvert(max_time, '%Y-%m-%d %H:%M:%S')
+
+    # ----------------------------
+    # Validating Schema
+    # ----------------------------
+
+    ol_cus = com_fun.getGlueColumns("olist_schemas", "olist_customers_dataset_csv")
+    ol_ord = com_fun.getGlueColumns("olist_schemas", "olist_orders_dataset_csv")
+    ol_pay = com_fun.getGlueColumns("olist_schemas", "olist_order_payments_dataset_csv")
+    ol_geo = com_fun.getGlueColumns("olist_schemas", "olist_geolocation_dataset_csv")
+    ol_items = com_fun.getGlueColumns("olist_schemas", "olist_order_items_dataset_csv")
+    ol_prod = com_fun.getGlueColumns("olist_schemas", "olist_products_dataset_csv")
+    ol_sellers = com_fun.getGlueColumns("olist_schemas", "olist_sellers_dataset_csv")
+    ol_reviews = com_fun.getGlueColumns("olist_schemas", "olist_order_reviews_dataset_csv")
+
+    logger.info("ol_cus schema: %s", ol_cus)
+    logger.info("ol_cus schema type: %s", type(ol_cus))
+    logger.info("spark_cus schema Type: %s", type(oil_Customers_schema))
+
+    
+
+    logger.info("Schema loaded successfully...!")
+
+    com_fun.compare_schemas(oil_Customers_schema, ol_cus)
+    com_fun.compare_schemas(oil_Orders_schema, ol_ord)
+    com_fun.compare_schemas(oil_OrderPayments_schema, ol_pay)
+    com_fun.compare_schemas(oil_GeoLocation_schema, ol_geo)
+    com_fun.compare_schemas(oil_OrderItems_schema, ol_items)
+    com_fun.compare_schemas(oil_Products_schema, ol_prod)
+    com_fun.compare_schemas(oil_Sellers_schema, ol_sellers)
+    com_fun.compare_schemas(oil_OrderReviews_schema, ol_reviews)
+
+    logger.info("Schema Validation is done successfully...!")
 
     # ----------------------------
     # Ingestion
@@ -64,6 +105,8 @@ def main():
     olist_sellers_df = records.read_records_csv(spark, config['paths']['olist_sellers'], oil_Sellers_schema)
     olist_order_reviews_df = records.read_records_csv(spark, config['paths']['olist_order_reviews'], oil_OrderReviews_schema)
     logger.info("Ingestion completed...!")
+
+    
 
     # ----------------------------
     # Data Quality Checks
@@ -90,6 +133,7 @@ def main():
     logger.info("Deduplication completed...!")
 
     target_path = config['output']['fact_orders_360']
+    target_table = config['output']['fact_orders_360_table']
 
     olist_order_items = en_order.total_items(olist_order_items_df)
     olist_orders = en_order.delivery_days(olist_orders_df_dep)
@@ -118,6 +162,9 @@ def main():
     ]
 
     fact_orders_360 = com_fun.multi_join(olist_order_items_df, join_configs)
+
+    print("Column list", fact_orders_360.columns)
+
     fact_orders_360_df = com_fun.select_columns(fact_orders_360, "customer_id", "order_id", "order_item_id", "customer_city", "customer_state", "seller_id", "product_id",
         "total_items", "total_order_value", "payment_type", "review_score", "delivery_days", "order_purchase_timestamp")
     
@@ -136,9 +183,9 @@ def main():
 
     # 2️⃣ First run vs subsequent run
     if not DeltaTable.isDeltaTable(spark, target_path):
-        write.write_parquet_delta(incremental_df, WriteMode.OVERWRITE, target_path, "customer_state")
+        write.write_parquet_delta(incremental_df, WriteMode.APPEND, target_path, "customer_state", table_name=target_table)
     else:
-        en_order.upsert(spark, incremental_df, target_path)
+        en_order.upsert(spark, incremental_df, target_table)
 
     # 3️⃣ Update watermark
     new_max_ts = incremental_df.agg(

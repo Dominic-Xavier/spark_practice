@@ -43,13 +43,17 @@ def write_json(df:DataFrame, mode:mode, path:str, partition_col=None) -> None:
         .json(path)
     )
 
-def write_parquet_delta(df:DataFrame, mode:mode, path:str, *partition_col) -> None:
-    """
-    Write DataFrame to Delta Parquet files
-    """
-    writer = df.write.mode(mode.value)
+def write_parquet_delta(df: DataFrame, mode, path: str, *partitions, table_name: str = None):
 
-    if partition_col:
-        writer = writer \
-        .partitionBy(partition_col)
-    writer.option("overwriteSchema", "true").format("delta").save(path)
+    if not path:
+        raise ValueError("Target path cannot be empty")
+
+    writer = df.write.format("delta").mode(mode.value)
+
+    if partitions:
+        writer = writer.partitionBy(*partitions)
+
+    if table_name:
+        writer.option("path", path).saveAsTable(table_name)
+    else:
+        writer.save(path)

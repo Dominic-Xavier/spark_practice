@@ -22,6 +22,8 @@ def get_spark(app_name: str, host: str = "local[*]") -> SparkSession:
         .config("spark.sql.autoBroadcastJoinThreshold", "-1")
         .config("spark.sql.coalescePartitions.enabled", "true")
         .config("spark.sql.adaptive.advisoryPartitionSizeInBytes", 128 * 1024 * 1024)
+        .config("spark.hadoop.hive.metastore.client.factory.class", "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory")
+        .enableHiveSupport()
     )
 
     spark = builder.getOrCreate()

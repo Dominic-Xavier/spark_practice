@@ -13,10 +13,22 @@ paths:
 
 output:
   fact_orders_360: s3://oil-list-1002/Git-Code/fact_orders_360/
+  fact_orders_360_table: olist_schemas.fact_orders_360
   dim_customer_order_metrics: s3://oil-list-1002/Git-Code/dim_customer_order_metrics/
   customer_scd_type_2: s3://oil-list-1002/Git-Code/scd_type_2/customer/
   product_scd_type_2: s3://oil-list-1002/Git-Code/scd_type_2/product/
   seller_scd_type_2: s3://oil-list-1002/Git-Code/scd_type_2/seller/
+
+Tables:
+  olist_customers_table: olist_schemas.olist_customers_dataset_csv
+  olist_orders_table: olist_schemas.olist_orders_dataset_csv
+  olist_payments_table: olist_schemas.olist_order_payments_dataset_csv
+  olist_geolocation_table: olist_schemas.olist_geolocation_dataset_csv
+  olist_order_items_table: olist_schemas.olist_order_items_dataset_csv
+  olist_products_table: olist_schemas.olist_products_dataset_csv
+  olist_sellers_table: olist_schemas.olist_sellers_dataset_csv
+  olist_order_reviews_table: olist_schemas.olist_order_reviews_dataset_csv
+  
 
 spark:
   shuffle_partitions: 50
