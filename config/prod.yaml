@@ -1,23 +1,23 @@
 env: prod
 
 paths:
-  olist_customers: s3://oil-list-1002/Bronze_Layer/olist_customers_dataset.csv
-  olist_orders: s3://oil-list-1002/Bronze_Layer/olist_orders_dataset.csv
-  olist_payments: s3://oil-list-1002/Bronze_Layer/olist_order_payments_dataset.csv
-  olist_geolocation: s3://oil-list-1002/Bronze_Layer/olist_geolocation_dataset.csv
-  olist_order_items: s3://oil-list-1002/Bronze_Layer/olist_order_items_dataset.csv
-  olist_products: s3://oil-list-1002/Bronze_Layer/olist_products_dataset.csv
-  olist_sellers: s3://oil-list-1002/Bronze_Layer/olist_sellers_dataset.csv
-  olist_order_reviews: s3://oil-list-1002/Bronze_Layer/olist_order_reviews_dataset.csv
-  water_mark: s3://oil-list-1002/Git-Code/logs/watermark/watermark.json
+  olist_customers: s3a://oil-list-1002/Bronze_Layer/olist_customers_dataset.csv
+  olist_orders: s3a://oil-list-1002/Bronze_Layer/olist_orders_dataset.csv
+  olist_payments: s3a://oil-list-1002/Bronze_Layer/olist_order_payments_dataset.csv
+  olist_geolocation: s3a://oil-list-1002/Bronze_Layer/olist_geolocation_dataset.csv
+  olist_order_items: s3a://oil-list-1002/Bronze_Layer/olist_order_items_dataset.csv
+  olist_products: s3a://oil-list-1002/Bronze_Layer/olist_products_dataset.csv
+  olist_sellers: s3a://oil-list-1002/Bronze_Layer/olist_sellers_dataset.csv
+  olist_order_reviews: s3a://oil-list-1002/Bronze_Layer/olist_order_reviews_dataset.csv
+  water_mark: s3a://oil-list-1002/Git-Code/logs/watermark/watermark.json
 
 output:
-  fact_orders_360: s3://oil-list-1002/Git-Code/fact_orders_360/
+  fact_orders_360: s3a://oil-list-1002/Git-Code/fact_orders_360/
   fact_orders_360_table: olist_schemas.fact_orders_360
-  dim_customer_order_metrics: s3://oil-list-1002/Git-Code/dim_customer_order_metrics/
-  customer_scd_type_2: s3://oil-list-1002/Git-Code/scd_type_2/customer/
-  product_scd_type_2: s3://oil-list-1002/Git-Code/scd_type_2/product/
-  seller_scd_type_2: s3://oil-list-1002/Git-Code/scd_type_2/seller/
+  dim_customer_order_metrics: s3a://oil-list-1002/Git-Code/dim_customer_order_metrics/
+  customer_scd_type_2: s3a://oil-list-1002/Git-Code/scd_type_2/customer/
+  product_scd_type_2: s3a://oil-list-1002/Git-Code/scd_type_2/product/
+  seller_scd_type_2: s3a://oil-list-1002/Git-Code/scd_type_2/seller/
 
 Tables:
   olist_customers_table: olist_schemas.olist_customers_dataset_csv

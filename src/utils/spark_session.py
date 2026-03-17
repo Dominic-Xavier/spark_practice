@@ -12,8 +12,8 @@ def get_spark(app_name: str, host: str = "local[*]") -> SparkSession:
     builder = (
         SparkSession.builder
         .appName("DeltaTest")
-        .master("local[*]")
-        .config("spark.hadoop.fs.defaultFS", "file:///")
+        #.master("local[*]")
+        #.config("spark.hadoop.fs.defaultFS", "file:///")
         .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
         .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
         .config("spark.sql.adaptive.coalescePartitions.enabled", "true")

@@ -42,7 +42,7 @@ def prepare_Fact_360_staging(source_df:DataFrame):
 def upsert(spark: SparkSession, source:DataFrame, target_path:str):
     source.createOrReplaceTempView("source")
     spark.sql(f"""
-        MERGE INTO delta.`{target_path}` t
+        MERGE INTO {target_path} t
         USING source s
         ON t.order_id = s.order_id
         AND t.order_item_id = s.order_item_id

@@ -53,7 +53,15 @@ def write_parquet_delta(df: DataFrame, mode, path: str, *partitions, table_name:
     if partitions:
         writer = writer.partitionBy(*partitions)
 
+    # Always write to path
+    writer.option("overwriteSchema", "true").save(path)
+
+    # Register table if needed
     if table_name:
-        writer.option("path", path).saveAsTable(table_name)
-    else:
-        writer.save(path)
+        spark = df.sparkSession
+        df.show()
+        spark.sql(f"""
+            CREATE TABLE IF NOT EXISTS {table_name}
+            USING DELTA
+            LOCATION '{path}'
+        """)

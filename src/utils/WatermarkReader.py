@@ -14,10 +14,10 @@ class WatermarkReader(WaterMark):
         self.s3 = boto3.client("s3")
 
     def _parse_s3_path(self):
-        if not self.s3_path.startswith("s3://"):
+        if not self.s3_path.startswith("s3://") and not self.s3_path.startswith("s3a://"):
             raise ValueError("Invalid S3 path")
 
-        path = self.s3_path.replace("s3://", "")
+        path = self.s3_path.replace("s3://", "").replace("s3a://", "")
         bucket, key = path.split("/", 1)
         return bucket, key
     

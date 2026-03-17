@@ -2,7 +2,7 @@ from pyspark.sql import functions as F
 from functools import reduce
 from pyspark.sql import DataFrame
 from datetime import datetime
-import boto3
+import boto3, os
 from pyspark.sql.types import BooleanType, StructType, StructField, StringType, IntegerType, LongType, DoubleType, TimestampType
 from pyspark.sql import SparkSession
 
@@ -23,7 +23,12 @@ def dateTimeConvert(date_str:str, format_string):
     return date_object
 
 def getGlueColumns(database: str, table: str) -> list:
-    boto3_client = boto3.client('glue')
+
+    region = os.environ.get("AWS_REGION", "us-east-2")
+
+    session = boto3.Session(region_name=region)
+
+    boto3_client = session.client('glue')
     response = boto3_client.get_table(
         DatabaseName=database,
         Name=table

@@ -170,6 +170,8 @@ def main():
     
     staging_df = en_order.prepare_Fact_360_staging(fact_orders_360_df)
 
+    
+
     if max_ts is not None:
         incremental_df = staging_df.filter(col("order_purchase_timestamp") > max_ts)
     else:
@@ -183,7 +185,7 @@ def main():
 
     # 2️⃣ First run vs subsequent run
     if not DeltaTable.isDeltaTable(spark, target_path):
-        write.write_parquet_delta(incremental_df, WriteMode.APPEND, target_path, "customer_state", table_name=target_table)
+        write.write_parquet_delta(incremental_df, WriteMode.OVERWRITE, target_path, "customer_state", table_name=target_table)
     else:
         en_order.upsert(spark, incremental_df, target_table)
 
@@ -195,6 +197,9 @@ def main():
     watermark_manager.update_watermark(order_purchase_timestamp=new_max_ts)
 
     logger.info("Pipeline completed successfully...!")
+
+    logger.info("Staging tabble content preview:")
+    staging_df.show(5, truncate=False)
 
 if __name__ == "__main__":
     main()
